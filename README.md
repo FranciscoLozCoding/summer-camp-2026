@@ -96,7 +96,7 @@ By the end of the week, every participant should have:
 
    *(TABLE HERE + image here)*
 
-   **c.** Fill in Section 3 **Porject Information** based on your own and your PI's knowledge of the project.
+   **c.** Fill in Section 3 **Project Information** based on your own and your PI's knowledge of the project.
 
 4. Submit the request and allow up to 24 hours for it to be processed. Once approved, you'll be able to view your nodes under **My Nodes → My Nodes**.
 
