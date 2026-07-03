@@ -29,15 +29,19 @@ Follow each step in order and collect the required screenshots as evidence that 
 4. Set a username and password for the admin panel.
 5. Under **Internet**, configure the Ethernet settings. Contact CS IT to get the correct IP address, gateway, subnet mask, and DNS server.
 
+<img width="1342" height="517" alt="image" src="https://github.com/user-attachments/assets/53b162d5-8b7e-4bee-a645-cb178af2fda5" />
+
+
 ### Optional — Enable Remote Access from Outside the Network
 
 If you need to access the router from outside the local network, complete these additional steps:
 
 6. In the side panel, go to **VPN → WireGuard Server** and press **Start**.
-7. Click **View Status**, scroll down to the WireGuard section, and enable **Allow Remote Access LAN**.
-8. Click **Apply** and exit.
+7. Click **View Status**, scroll down to the VPN Server section, click the settings on WireGuard, and enable **Allow Remote Access LAN**.
+   <img width="1136" height="70" alt="image" src="https://github.com/user-attachments/assets/8ddb3dc6-c2f2-480c-afcf-952e0eb27d20" />
+   <img width="766" height="410" alt="image" src="https://github.com/user-attachments/assets/4afd15ba-aa4c-4665-b6ec-6c163e6c2667" />
 
-*(ADD IMAGE: WireGuard server status screen showing Remote Access LAN enabled)*
+9. Click **Apply** and exit.
 
 ---
 
@@ -69,19 +73,25 @@ Each camera has a **UID** printed on a sticker on the back. Reolink UIDs typical
 
 1. Open the Reolink app.
 2. Tap **+** to add a device.
-3. Select **UID**.
-4. Enter the UID from the camera's sticker. If you're unable to connect, skip to step 2d.
-5. Log in with the camera credentials:
+   <img width="319" height="152" alt="image" src="https://github.com/user-attachments/assets/ab2cd896-da4e-48f6-98ca-e06ec16c8060" />
+
+4. Select **UID**.
+   <img width="947" height="590" alt="image" src="https://github.com/user-attachments/assets/e2dc9aaf-0db6-4efe-aecb-743752dfc972" />
+
+
+6. Enter the UID from the camera's sticker. If you're unable to connect, skip to step 2d.
+7. Log in with the camera credentials:
 
 ```
 Username: admin
 Password: [see camp coordinator for password]
 ```
 
-<!-- FLAG: The original has a hardcoded password here. Since this file will live on a public GitHub repo, I've replaced it with a placeholder — you should either keep it as a placeholder and share credentials separately, or confirm this repo is private. -->
 
 **Required Screenshot — `01-reolink-app-cameras.png`**
-Must show: cameras listed and online in the Reolink app.
+
+Must show: 
+- cameras listed and online in the Reolink app.
 
 ### 2d. Add the Camera via IP (if UID connection failed)
 
@@ -90,13 +100,18 @@ If UID connection failed, follow these steps instead. Otherwise, skip to Step 3.
 1. Confirm the Reolink camera is connected to the router via ethernet.
 2. Connect to the WireGuard VPN or the router's Wi-Fi.
 3. Open the GL.iNet admin page at `http://192.168.8.1`.
-4. Navigate to the **Client List** in the left panel and record the camera's IP address.
-5. Open the Reolink app.
-6. Tap **+** to add a device.
-7. Select **IP/Domain** and paste in the camera's IP address.
-8. Log in with the camera credentials (same as above).
+4. Navigate to the **Clients** in the left panel and record the camera's IP address.
+   <img width="1192" height="262" alt="image" src="https://github.com/user-attachments/assets/6b865449-1230-4970-99ff-015fd2cdd6d9" />
+
+6. Open the Reolink app.
+7. Tap **+** to add a device.
+8. Select **IP/Domain** and paste in the camera's IP address.
+   <img width="950" height="590" alt="image" src="https://github.com/user-attachments/assets/73a54df6-72c4-4d4f-81bf-377f4650483f" />
+
+10. Log in with the camera credentials (same as above).
 
 **Required Screenshot — `02-camera-detected.png`**
+
 Must show:
 - Reolink camera listed
 - Assigned IP address
@@ -107,8 +122,6 @@ Reolink-PTZ
 192.168.8.55
 ```
 
-*(ADD IMAGE: GL.iNet client list with Reolink camera highlighted)*
-
 ---
 
 ## Step 3 — Configure Camera Settings
@@ -116,16 +129,20 @@ Reolink-PTZ
 This step enables the camera stream to be visible via a web browser and RTSP.
 
 1. In the Reolink app, tap the **settings gear icon** next to your camera.
-2. Go to **Network → Advanced → Server Settings**.
-3. Enable **HTTPS** and **RTSP**.
-4. Save and exit.
+   <img width="320" height="110" alt="image" src="https://github.com/user-attachments/assets/618c166a-865c-47b6-9264-339627f7d08a" />
+
+3. Go to **Network → Advanced → Server Settings**.
+4. Enable **HTTPS** and **RTSP**.
+   <img width="1051" height="962" alt="image" src="https://github.com/user-attachments/assets/6dd62b76-644d-4719-a4e4-f7a82964fe93" />
+
+6. Save and exit.
 
 **Required Screenshot — `03-camera-settings.png`**
+
 Must show:
 - HTTPS enabled
 - RTSP enabled
 
-*(ADD IMAGE: Reolink app server settings screen with HTTPS and RTSP toggled on)*
 
 ---
 
@@ -143,6 +160,7 @@ Verify:
 - Camera settings are accessible
 
 **Required Screenshot — `04-camera-live-view.png`**
+
 Must show:
 - Live video stream
 - Camera name
@@ -157,23 +175,27 @@ To ensure the camera always receives the same IP address, configure a static DHC
 1. Open the GL.iNet admin page at `http://192.168.8.1`.
 2. Open the **Network** dropdown on the right and select **LAN**.
 3. Scroll down and click the blue **Add** button to create a static DHCP reservation.
-4. Click the **MAC** dropdown and select your camera — the IP and description should auto-populate.
-5. Save the reservation.
+   <img width="1251" height="147" alt="image" src="https://github.com/user-attachments/assets/6228c439-35b4-4ccb-9ee4-2cf29cf9e183" />
+
+5. Click the **MAC** dropdown and select your camera — the IP and description should auto-populate.
+   <img width="1185" height="110" alt="image" src="https://github.com/user-attachments/assets/187c2404-6ce0-4eb2-b7b2-4f3946466f42" />
+
+7. Save the reservation.
 
 **Required Screenshot — `05-static-dhcp.png`**
+
 Must show:
 - Camera MAC address
 - Reserved IP address
 - Reservation enabled
 
-*(ADD IMAGE: GL.iNet LAN settings showing the static DHCP reservation entry)*
 
 ---
 
 ## Step 6 — Configure the WireGuard Client (Connect to Sage VPN)
 
 1. In the GL.iNet admin panel, go to **VPN → WireGuard Client**.
-2. Click the blue **Add Configuration** button.
+2. Click the blue **Add Configuration** button (this might say **New Group** then **Manually Add Configuration** instead).
 3. On a Linux machine, generate a WireGuard key pair:
 
 ```bash
@@ -204,23 +226,21 @@ PersistentKeepalive = 25
 PublicKey = <Sage server public key — provided by Sage team>
 ```
 
-<!-- FLAG: The original had the Sage server public key hardcoded here. Replaced with a placeholder — confirm whether it's okay to include in a public repo, or if it should stay as a placeholder. -->
-
 7. Name the configuration and click **Apply**. The router is now connected to the Sage VPN.
 
 8. Go to **VPN → VPN Dashboard**, click **Global Proxy**, and switch it to **Auto Detect**. This ensures only traffic intended for the Sage network goes through the VPN — all other traffic uses your regular internet connection.
+   <img width="1270" height="432" alt="image" src="https://github.com/user-attachments/assets/9dea58fe-90fb-412c-bb89-42cab2c72997" />
 
-9. Share your public key with the Sage development team.
+10. Share your public key with the Sage development team.
 
 **Required Screenshot — `06-wireguard-config.png`**
+
 Must show:
 - Tunnel enabled
 - Assigned VPN address
 - Peer configured
 
 > **Do not include your private key** in any screenshot, notes, or submitted files.
-
-*(ADD IMAGE: GL.iNet WireGuard client screen showing the active configuration)*
 
 ---
 
@@ -241,19 +261,18 @@ Set up a port forwarding rule so that incoming traffic through the WireGuard tun
 | Internal Zone | LAN |
 | Internal IP | Your camera's reserved IP address |
 | Internal Port | `554` (RTSP) |
+<img width="1287" height="450" alt="image" src="https://github.com/user-attachments/assets/70ac7b74-8fbb-4066-8e8f-dc681644836f" />
 
 4. Click **Apply** and exit.
 
-<!-- QUESTION: What does `1000X` mean exactly — is this a placeholder for a specific numbering scheme (e.g., 10001, 10002 per camera)? Clarifying this would help participants deploying multiple cameras. -->
-
 **Required Screenshot — `07-port-forwarding.png`**
+
 Must show:
 - External port
 - Internal IP address
 - Internal port
 - Rule enabled
 
-*(ADD IMAGE: GL.iNet Firewall screen showing the completed port forwarding rule)*
 
 ---
 
@@ -268,7 +287,6 @@ Confirm the camera is reachable through the Sage blade.
 ping 10.107.x.x
 ```
 
-<!-- QUESTION: Should participants also try loading the RTSP stream or HTTPS camera page here to confirm full video access, or is a successful ping enough? -->
 
 ---
 
@@ -286,10 +304,9 @@ iwconfig
  
 3. Connect to the GL.iNet router's Wi-Fi:
 ```bash
-sudo nmcli dev wifi connect "GL-MT1300-7ec" password "[router wifi password]"
+sudo nmcli dev wifi connect "[router wifi name]" password "[router wifi password]"
 ```
  
-<!-- FLAG: Original had the router Wi-Fi password hardcoded. Replaced with a placeholder — same concern as above if this is a public repo. -->
  
 4. Note the Jetson's IP address:
 ```bash
@@ -335,6 +352,7 @@ sudo wg-quick up wg0
 > **Do not include any private keys** in screenshots, notes, or any files you submit or share.
  
 **Required Screenshot — `08-wireguard-jetson.png`**
+
 Must show:
 - Tunnel enabled
 - Assigned VPN address
