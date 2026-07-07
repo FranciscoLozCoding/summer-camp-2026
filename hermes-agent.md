@@ -67,7 +67,7 @@ During setup, work through the installer in this order. Values marked *example* 
 
 > **Why `127.0.0.1`?** Hermes talks to Ollama through the SSH tunnel (Step 2), which forwards your laptop's port 11434 to the Thor.
 
-### 1.3 Model settings
+### 1.3 Model settings (*example*)
 
 | Field | Example value | Notes |
 | ----- | ------------- | ----- |
