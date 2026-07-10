@@ -166,7 +166,7 @@ Launch with `sage` or `hermes -p sage`.
 ### Pull camp config updates
 
 ```bash
-hermes profile update sage
+hermes profile update sage --force-config
 ```
 
 Replaces distribution-owned files (SOUL, skills, cron, mcp.json). **Preserves** your `config.yaml` tweaks and all user data (memories, sessions, `.env`). Pass `--force-config` only to reset config to the distribution default.
@@ -399,7 +399,7 @@ less -R ~/AI-projects/tmux-logs/transcript_*.ansi
 ```bash
 hermes model              # add or change model providers
 hermes setup              # re-run setup wizard
-hermes profile update sage   # pull camp profile updates
+hermes profile update sage --force-config   # pull camp profile updates
 ```
 
 ---
@@ -736,7 +736,7 @@ Memories and sessions from your old machine **do not transfer** — each machine
 ### Pull updates (teammates or additional machines)
 
 ```bash
-hermes profile update sage
+hermes profile update sage --force-config
 ```
 
 Updates replace distribution-owned files (SOUL, skills, cron) but **never** touch `memories/`, `sessions/`, or `.env`.
