@@ -1,7 +1,7 @@
 # Hermes Agent Setup Guide
 >NOTE: This is stil in development, so go ahead and try it out and let us know if you have any issues.
 
-Run **Hermes Agent on your Thor** — your laptop is only an SSH client. Hermes handles files, terminal, and tools on the Thor; inference runs on the same machine via **Ollama** (Part 1) or over HTTPS to **NVIDIA Build** (Part 2).
+Run **Hermes Agent on your Thor** — your laptop is only an SSH client. Hermes handles files, terminal, and tools on the Thor; inference runs on the same machine via **Ollama** (Part 1) or over HTTPS to **NVIDIA Build** (Part 2) or **NRP Managed LLMs** (Part 2B).
 
 Every participant has their **own Linux account** on the Thor. Hermes installs into your home directory (`~/.hermes/`) — agents are isolated by default. To share config or set up on a new machine, use a **profile distribution** ([Part 3](#part-3-transferring-the-brain)).
 
@@ -9,9 +9,10 @@ Every participant has their **own Linux account** on the Thor. Hermes installs i
 | ----- | -------- |
 | [Part 1 — Thor + Ollama](#part-1-thor--ollama) | Local GPU inference via Ollama on your assigned Thor |
 | [Part 2 — NVIDIA Hosted APIs](#part-2-nvidia-hosted-apis) | Cloud inference via NVIDIA Build (no Ollama needed) |
+| [Part 2B — NRP Managed LLMs](#part-2b-nrp-managed-llms) | Cloud inference via NRP Nautilus (`gpt-oss` default) |
 | [Part 3 — Transferring the brain](#part-3-transferring-the-brain) | Share agent config or move to a new machine via profile distribution |
-| [Comparison](#thor-vs-nvidia-hosted-apis) | Choosing between the two inference approaches |
-| [Switching between approaches](#switching-between-the-two-approaches) | Swap providers without reinstalling |
+| [Comparison](#inference-options-compared) | Choosing between inference approaches |
+| [Switching between approaches](#switching-between-approaches) | Swap providers without reinstalling |
 
 **Docs:** [Hermes Documentation](https://hermes-agent.nousresearch.com/docs/) · [Profile Distributions](https://hermes-agent.nousresearch.com/docs/user-guide/profile-distributions)
 
@@ -497,6 +498,99 @@ All inference requests go to NVIDIA's hosted infrastructure from the Thor.
 
 ---
 
+# Part 2B: NRP Managed LLMs
+
+Hermes runs on the Thor and talks to **[NRP Managed LLMs](https://nrp.ai/documentation/userdocs/ai/llm-managed/)** over HTTPS via the Envoy AI Gateway. No Ollama required. The camp profile ships **`gpt-oss`** ([openai/gpt-oss-120b](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/#gpt-oss)) as the default NRP model — strong tool calling, reasoning, and 128K context.
+
+## At a glance
+
+```
+  Laptop (SSH)              Thor                    NRP Nautilus
+┌──────────────┐     ┌──────────────────┐        ┌──────────────────────────┐
+│  tmux attach │ SSH │  Hermes Agent    │  HTTPS │  ellm.nrp-nautilus.io    │
+│              │────►│  (your account)  │───────►│  Managed open-weights    │
+└──────────────┘     └──────────────────┘  TLS   └──────────────────────────┘
+```
+
+---
+
+## Prerequisites
+
+- [ ] SSH access to your Thor with Hermes installed ([Part 1](#part-1-thor--ollama))
+- [ ] NRP group membership with the **LLM flag** enabled (check the [namespaces page](https://nrp.ai/documentation/userdocs/ai/llm-managed/api-access/))
+- [ ] NRP LLM token from the [LLM token page](https://nrp.ai/documentation/userdocs/ai/llm-managed/api-access/)
+
+If you used the camp profile (Step 3A), the `nrp` custom provider is already in `config.yaml` — you only need to add your token to `.env`.
+
+---
+
+## Step 1 — Get an NRP LLM token
+
+1. Confirm your NRP group has the LLM flag (see [API Access](https://nrp.ai/documentation/userdocs/ai/llm-managed/api-access/)).
+2. Create a token on the NRP LLM token page.
+3. Store it in **your** `~/.hermes/profiles/sage/.env`:
+
+```bash
+# ~/.hermes/profiles/sage/.env
+NRP_LLM_API_KEY=<your-token>
+```
+
+---
+
+## Step 2 — Verify access
+
+```bash
+curl -H "Authorization: Bearer $NRP_LLM_API_KEY" https://ellm.nrp-nautilus.io/v1/models
+```
+
+You should see `gpt-oss` and other active models in the response.
+
+---
+
+## Step 3 — Switch to NRP in Hermes
+
+```bash
+hermes model
+```
+
+| Setting | Value |
+| ------- | ----- |
+| Provider | **`nrp`** (custom provider) |
+| API Key env | `NRP_LLM_API_KEY` (from `.env`) |
+| Base URL | `https://ellm.nrp-nautilus.io/v1` (pre-configured) |
+| Model | **`gpt-oss`** |
+
+Or edit `~/.hermes/profiles/sage/config.yaml` directly — the `nrp` provider and `gpt-oss` model are already defined under `custom_providers`.
+
+> **Why gpt-oss?** LTS-friendly, strong tool calling, 128K context — a good general-purpose camp default on NRP. Browse the [model matrix](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/) to pick others (`qwen3`, `gemma`, `kimi`, etc.) via `hermes model`.
+
+---
+
+## Step 4 — Launch Hermes
+
+```bash
+tmux attach -t hermes    # if already running
+# or start fresh:
+tmux new -s hermes
+sage                # or: hermes -p sage
+```
+
+All inference requests go to NRP's managed infrastructure from the Thor.
+
+---
+
+## Troubleshooting (NRP)
+
+1. Confirm your group has the LLM flag — without it, the endpoint returns auth errors.
+2. Token must be passed as `Authorization: Bearer <token>`.
+3. Model ID is **`gpt-oss`** (not `openai/gpt-oss-120b`) — use the short API alias from `/v1/models`.
+4. Review the [Fair Use Policy](https://nrp.ai/documentation/userdocs/ai/llm-managed/fair-use-policy/) — per-model concurrency limits apply.
+5. Confirm the token is in **your** `.env`, not another user's.
+
+**References:** [NRP Managed LLMs](https://nrp.ai/documentation/userdocs/ai/llm-managed/) · [Available Models](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/) · [API Access](https://nrp.ai/documentation/userdocs/ai/llm-managed/api-access/) · [Client Configurations](https://nrp.ai/documentation/userdocs/ai/llm-managed/client-configs/)
+
+---
+
 # Part 3: Transferring the brain
 
 Move agent configuration between machines or share it with your team via **profile distributions**. Use `export`/`import` only for local backup on the same machine.
@@ -638,28 +732,30 @@ hermes doctor
 
 ---
 
-# Thor vs. NVIDIA Hosted APIs
+# Inference options compared
 
-| | Thor + Ollama | NVIDIA Hosted APIs |
-| --- | --- | --- |
-| **Where Hermes runs** | Thor | Thor |
-| **Where inference runs** | Thor (Ollama, local GPU) | NVIDIA Build (cloud) |
-| **Laptop role** | SSH client + tmux attach | SSH client + tmux attach |
-| **SSH tunnel** | Not needed | Not needed |
-| **API key** | Not required | Required (`nvapi-...`) |
-| **Internet** | Only for SSH | Always (on Thor) |
-| **Models** | Any Ollama model on the Thor | NVIDIA catalog only |
-| **Cost** | Shared Thor GPU | NVIDIA Build credits |
+| | Thor + Ollama | NRP Managed LLMs | NVIDIA Hosted APIs |
+| --- | --- | --- | --- |
+| **Where Hermes runs** | Thor | Thor | Thor |
+| **Where inference runs** | Thor (Ollama, local GPU) | NRP Nautilus (cloud) | NVIDIA Build (cloud) |
+| **Endpoint** | `http://127.0.0.1:11434/v1` | `https://ellm.nrp-nautilus.io/v1` | `https://integrate.api.nvidia.com/v1` |
+| **API key** | Not required | `NRP_LLM_API_KEY` (Bearer token) | `NVIDIA_API_KEY` (`nvapi-...`) |
+| **Default camp model** | `gemma4:31b` | `gpt-oss` | (user picks from catalog) |
+| **Internet** | Only for SSH | Always (on Thor) | Always (on Thor) |
+| **Models** | Any Ollama model on the Thor | NRP catalog ([model matrix](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/)) | NVIDIA catalog only |
+| **Cost** | Shared Thor GPU | NRP fair-use policy | NVIDIA Build credits |
 
 **Choose Thor + Ollama** when you want full model control on local GPU hardware.
 
-**Choose NVIDIA** when you want cloud inference without managing Ollama or local models.
+**Choose NRP** when you want NSF-hosted cloud inference with open-weights models (e.g. `gpt-oss`, `qwen3`, `gemma`).
+
+**Choose NVIDIA** when you want NVIDIA Build catalog models and credits.
 
 ---
 
-# Switching between the two approaches
+# Switching between approaches
 
-Both providers are configured on the Thor. Switch anytime:
+All providers can be configured on the Thor. Switch anytime:
 
 ```bash
 hermes model
@@ -667,8 +763,8 @@ hermes model
 
 Select the appropriate provider:
 
-- **NVIDIA NIM** — for NVIDIA Hosted APIs
-- **sage-thor-H020-gemma4-31b** (or your Thor display name) — for Thor + Ollama
-- **sage** profile — if the camp profile defines both and you switch within it
+- **`local-sage-thor`** — Thor + Ollama (`gemma4:31b`)
+- **`nrp`** — NRP Managed LLMs (`gpt-oss` default)
+- **NVIDIA NIM** — NVIDIA Build hosted APIs
 
 If using the camp profile, you can also edit `~/.hermes/profiles/sage/.env` and `config.yaml` directly.

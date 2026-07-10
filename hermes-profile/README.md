@@ -8,9 +8,9 @@ Install on your Thor following [hermes-agent.md — Step 3A](../hermes-agent.md#
 
 ```text
 hermes-profile/
-├── distribution.yaml    # manifest (name: sage, version 1.0.0)
+├── distribution.yaml    # manifest (name: sage, version 1.0.1)
 ├── SOUL.md              # agent personality + platform domain facts
-├── config.yaml          # Ollama default (gemma4:31b @ 127.0.0.1:11434)
+├── config.yaml          # Ollama default + NRP provider pre-wired (gpt-oss)
 ├── mcp.json             # Sage MCP server pre-wired
 ├── skills/sage-waggle/  # Sage/Waggle skill (~70 reference files)
 ├── docs/                # pywaggle2 design docs + project status
@@ -47,6 +47,7 @@ Launch with `sage` or `hermes -p sage`.
 | Variable | When needed |
 | --- | --- |
 | `NVIDIA_API_KEY` | Part 2 — NVIDIA Build inference ([hermes-agent.md](../hermes-agent.md#part-2-nvidia-hosted-apis)) |
+| `NRP_LLM_API_KEY` | Part 2B — NRP Managed LLMs (`gpt-oss`) ([hermes-agent.md](../hermes-agent.md#part-2b-nrp-managed-llms)) |
 | `SAGE_PORTAL_TOKEN` | Sage MCP job-submission tools only — read-only MCP works without it |
 
 ## Sage access setup
@@ -113,7 +114,7 @@ Replaces distribution-owned files (SOUL, skills, mcp.json, docs). **Preserves** 
 
 ## Author / versioning
 
-- Manifest: `distribution.yaml` (`name: sage`, `version: 1.0.0`)
+- Manifest: `distribution.yaml` (`name: sage`, `version: 1.0.1`)
 - Tag releases in git (`git tag v1.0.0`) for version tracking
 - See the [Profile Distributions author guide](https://hermes-agent.nousresearch.com/docs/user-guide/profile-distributions#for-authors-publishing-a-distribution)
 

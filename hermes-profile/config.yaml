@@ -172,6 +172,13 @@ custom_providers:
     models:
       gemma4:31b:
         context_length: 256000
+  - name: nrp
+    base_url: https://ellm.nrp-nautilus.io/v1
+    key_env: NRP_LLM_API_KEY
+    model: gpt-oss
+    models:
+      gpt-oss:
+        context_length: 131072
 
 # ── Security ──────────────────────────────────────────────────────────
 # Secret redaction is ON by default — strings that look like API keys,
