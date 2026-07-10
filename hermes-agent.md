@@ -352,8 +352,7 @@ tmux -V
 ```bash
 tmux new -s hermes
 # Inside the session:
-sage          # or: hermes -p sage   (if you used profile install)
-# or: hermes       (if you used manual setup)
+hermes
 
 # Detach: Ctrl-b then d
 # Reattach from any SSH session:
@@ -366,7 +365,7 @@ tmux ls
 **Optional detached start:**
 
 ```bash
-tmux new -s hermes -d 'sage'
+tmux new -s hermes -d 'hermes'
 tmux attach -t hermes
 ```
 
@@ -564,7 +563,7 @@ NVIDIA_API_KEY=nvapi-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 tmux attach -t hermes    # if already running
 # or start fresh:
 tmux new -s hermes
-sage                # or: hermes
+hermes
 ```
 
 All inference requests go to NVIDIA's hosted infrastructure from the Thor.
