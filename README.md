@@ -88,18 +88,13 @@ By the end of the week, every participant should have:
    - Click your profile dropdown and select **Request Access**.
    - Choose **Request access to specific nodes or projects**.
 
-   **a.** On Step 2 of the Sage Access Request form, open the **Projects (multiple allowed)** dropdown and search for **summer-camp-2026**. This covers all the devices you'll need for the hackathon.
+   - On Step 2 of the Sage Access Request form, open the **Projects** dropdown and search for **Summer-Camp-2026** and select all of the following permissions. This will covers all the devices you'll need for the hackathon.
 
-   **b.** Select the following permissions:
-   - Running apps (includes SageChat/LLMs)
-   - Shell (SSH access)
-   - File Access (downloading/viewing protected files) <!-- confirm: original text was "protectedChat/LLMS" — wasn't sure if this is the exact permission label, please double check against the form -->
+<img width="1177" height="539" alt="image" src="https://github.com/user-attachments/assets/17ecda17-ce7f-4b76-889a-475d7b1593bf" />
 
-   *(TABLE HERE + image here)*
+   - Fill in Section 3 **Project Information** based on your own and your PI's knowledge of the project.
 
-   **c.** Fill in Section 3 **Project Information** based on your own and your PI's knowledge of the project.
-
-4. Submit the request and allow up to 24 hours for it to be processed. Once approved, you'll be able to view your nodes under **My Nodes → My Nodes**.
+4. Submit the request and allow up to 48 hours for it to be processed. Once approved, you'll be able to view your nodes under **My Nodes → My Nodes**.
 
    <img width="1433" height="733" alt="Screenshot 2026-06-18 at 2 53 31 PM" src="https://github.com/user-attachments/assets/804884f7-1c5f-44e0-9b3b-c6feac3c87d2" />
 
@@ -119,7 +114,7 @@ By the end of the week, every participant should have:
 
    <img width="1425" height="720" alt="Screenshot 2026-06-18 at 3 13 39 PM" src="https://github.com/user-attachments/assets/121013f6-1dd5-4525-b044-3f5146dba23d" />
 
-3. You're now ready to SSH into a node:
+3. Once your account is approved, you'll be ready to SSH into a node:
 
    ```
    ssh waggle-dev-node-NODE_OF_CHOICE
