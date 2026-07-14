@@ -40,6 +40,7 @@ Auth tokens: get from `portal.sagecontinuum.org/account/access`. Format: `Author
 
 **Official docs (prefer these URLs when citing Sage):**
 - **Full docs catalog (summary + URL for every page):** `references/sage-docs-index.md` — pick a URL, then fetch the live page for full content
+- **Public code catalog (`waggle-sensor` org):** `references/waggle-sensor-repos-index.md` — summary + URL per public repo (private skipped)
 - **Getting started:** <https://sagecontinuum.org/docs/getting-started>
 - **Edge apps tutorial:** <https://sagecontinuum.org/docs/category/edge-apps>
 - **pluginctl reference:** <https://sagecontinuum.org/docs/reference-guides/pluginctl> · tutorials: <https://github.com/waggle-sensor/edge-scheduler/tree/main/docs/pluginctl>
@@ -485,7 +486,7 @@ Large files (images, audio): stored on Open Storage Network (S3-compatible objec
 ## GitHub Organizations
 
 - `sagecontinuum` — 26+ repos (sage-data-client, sage-gui, sage-cli, sesctl, beekeeper)
-- `waggle-sensor` — 80+ repos; **pywaggle SDK:** <https://github.com/waggle-sensor/pywaggle> (also waggle-edge-stack, edge-scheduler, pluginctl, plugin-base, virtual-waggle)
+- `waggle-sensor` — public repo catalog: `references/waggle-sensor-repos-index.md`; **pywaggle SDK:** <https://github.com/waggle-sensor/pywaggle> (also waggle-edge-stack, edge-scheduler / pluginctl+sesctl, plugin-base, virtual-waggle, sage-mcp)
 
 ## Hermes Native MCP Integration
 
@@ -655,6 +656,7 @@ Docker image naming: `registry.sagecontinuum.org/<user>/<plugin-name>:<version>`
 ## See Also
 
 - **`references/sage-docs-index.md`** — catalog of every page under [sagecontinuum.org/docs](https://sagecontinuum.org/docs/getting-started): title, summary, URL (fetch live for full content)
+- **`references/waggle-sensor-repos-index.md`** — catalog of **public** repos under [github.com/orgs/waggle-sensor](https://github.com/orgs/waggle-sensor/repositories): summary + URL (clone/browse for source; private repos omitted)
 - **Edge apps (tutorial series):** <https://sagecontinuum.org/docs/category/edge-apps>
 - **pluginctl:** <https://sagecontinuum.org/docs/reference-guides/pluginctl> · <https://github.com/waggle-sensor/edge-scheduler/tree/main/docs/pluginctl>
 - **sesctl:** <https://sagecontinuum.org/docs/reference-guides/sesctl> · <https://github.com/waggle-sensor/edge-scheduler/tree/main/docs/sesctl>
