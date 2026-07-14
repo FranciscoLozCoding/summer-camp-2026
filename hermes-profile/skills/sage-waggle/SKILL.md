@@ -38,7 +38,21 @@ Auth tokens: get from `portal.sagecontinuum.org/account/access`. Format: `Author
 
 > **Camp default (Thor):** prefer `sudo pluginctl build .` → `sudo pluginctl run` for on-node development. Start with `references/pluginctl-camp-guide.md`. Use raw `podman build` only for ECR-bypass side-load workflows (see `references/pluginctl-sideload-and-node-build.md`).
 
-Plugins are Docker containers using pywaggle. Minimal pattern:
+Plugins are Docker containers using **[pywaggle](https://github.com/waggle-sensor/pywaggle)** — the official Python SDK for Waggle plugins (`waggle.plugin`, cameras, microphones, uploads). Prefer that GitHub repo as the source of truth for API, docs, and source layout (`src/waggle/…`).
+
+**Install:**
+```bash
+pip install -U 'pywaggle[all]'          # core + audio + vision
+# or subsets: pywaggle | pywaggle[audio] | pywaggle[vision]
+```
+
+**Docs / source:**
+- Repo: <https://github.com/waggle-sensor/pywaggle>
+- Writing a plugin: <https://github.com/waggle-sensor/pywaggle/blob/main/docs/writing-a-plugin.md>
+- Plugin source: <https://github.com/waggle-sensor/pywaggle/tree/main/src/waggle>
+- Latest release (PyPI via GitHub releases): check repo Releases (e.g. 0.56.x)
+
+Minimal pattern:
 
 ```python
 from waggle.plugin import Plugin
@@ -459,7 +473,7 @@ Large files (images, audio): stored on Open Storage Network (S3-compatible objec
 ## GitHub Organizations
 
 - `sagecontinuum` — 26+ repos (sage-data-client, sage-gui, sage-cli, sesctl, beekeeper)
-- `waggle-sensor` — 80+ repos (pywaggle, waggle-edge-stack, edge-scheduler, pluginctl, plugin-base, virtual-waggle)
+- `waggle-sensor` — 80+ repos; **pywaggle SDK:** <https://github.com/waggle-sensor/pywaggle> (also waggle-edge-stack, edge-scheduler, pluginctl, plugin-base, virtual-waggle)
 
 ## Hermes Native MCP Integration
 
@@ -628,6 +642,7 @@ Docker image naming: `registry.sagecontinuum.org/<user>/<plugin-name>:<version>`
 
 ## See Also
 
+- **pywaggle (plugin SDK):** <https://github.com/waggle-sensor/pywaggle> — install, Writing a plugin guide, `src/waggle` source. Skill notes on uploads/timestamps assume this package.
 - Monorepo archive: https://github.com/flint-pete/sage-edge-plugins
 - Per-plugin repos (required for ECR submission; each has DOCKER-BUILD.md + THOR-TESTING.md): https://github.com/flint-pete/sage-yolo, sage-bioclip (v0.3.0 = BioCLIP 2.5 Huge, v0.2.1 = BioCLIP 2), sage-vllm, birdnet, image-sampler2. birdnet = BirdNET V2.4 audio classifier (`pip install birdnet`, TFLite CPU ARM64); sources `--input`/`--camera` URL/USB mic; Reolink FLV audio uses QUERY-PARAM auth not basic; auto-detects node location+week. Detail: references/audio-plugin-debugging-birdnet.md, references/birdnet-audio-debugging-and-geofilter.md, references/reolink-audio-capture.md.
 - `references/architecture-detail.md` — full architecture notes

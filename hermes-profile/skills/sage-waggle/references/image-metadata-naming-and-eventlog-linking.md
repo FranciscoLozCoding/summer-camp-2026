@@ -3,7 +3,7 @@
 Durable techniques for working with camera images uploaded by Sage plugins:
 how they're named, what metadata survives, how to link a downloaded file back
 to its event-log record, and the uniqueness pitfalls. Verified against live
-data.sagecontinuum.org and pywaggle `main` source, 2026-07.
+data.sagecontinuum.org and [pywaggle](https://github.com/waggle-sensor/pywaggle) `main` source, 2026-07.
 
 ## 1. pywaggle object naming (who names what)
 

@@ -63,7 +63,8 @@ docker run --rm -it --runtime=nvidia \
     bash
 
 # Inside the container:
-pip install pywaggle[all] ultralytics opencv-python-headless
+# pywaggle SDK: https://github.com/waggle-sensor/pywaggle
+pip install -U 'pywaggle[all]' ultralytics opencv-python-headless
 export PYWAGGLE_LOG_DIR=./output/yolo-test
 python3 plugins/yolo-object-counter/app.py \
     --image-dir plugins/yolo-object-counter/tests/test-images \

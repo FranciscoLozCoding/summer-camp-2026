@@ -1,8 +1,9 @@
 # pywaggle capture-time filename/record stamping (override the default)
 
 How to make an uploaded object's name prefix + record timestamp reflect CAPTURE
-time instead of UPLOAD time. Verified against current pywaggle source
-(`src/waggle/plugin/plugin.py`, main branch) 2026-07.
+time instead of UPLOAD time. Verified against
+[pywaggle](https://github.com/waggle-sensor/pywaggle) (`src/waggle/plugin/plugin.py`,
+main branch) 2026-07.
 
 ## The mechanism: pywaggle only DEFAULTS the timestamp
 
@@ -56,6 +57,7 @@ cache, pywaggle-fed-the-same-ts for uploads).
 
 ## Repo layout gotcha
 
-pywaggle source lives under `src/waggle/plugin/plugin.py` (NOT
-`waggle/plugin/plugin.py`) on the main branch — the bare path 404s on
-raw.githubusercontent.com.
+In [waggle-sensor/pywaggle](https://github.com/waggle-sensor/pywaggle), source lives
+under `src/waggle/plugin/plugin.py` (NOT `waggle/plugin/plugin.py`) on `main` —
+the bare path 404s on raw.githubusercontent.com. Prefer browsing/cloning the GitHub
+repo rather than guessing PyPI sdist layout.

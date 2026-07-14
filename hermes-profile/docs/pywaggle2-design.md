@@ -4,7 +4,7 @@ Status: DRAFT for discussion. A proposal for a next-generation Waggle plugin
 client library ("pywaggle2") that fixes the acquisition/metadata and
 node-identity gaps we hit repeatedly while building image-sampler2, birdnet,
 yolo, and bioclip. Written to be lifted into an upstream design/RFC for
-`waggle-sensor/pywaggle`.
+`https://github.com/waggle-sensor/pywaggle`.
 
 Author: Pete Beckman <pete.beckman@northwestern.edu>
 Companion: `~/AI-projects/Infra-problems-to-fix.md` (the raw issue list this
@@ -753,7 +753,7 @@ The time-critical piece remains §2 + §6.3: the CI team is actively building ru
 step is to circulate §2 (node-info API + the mobility tri-state and the `mobility`
 manifest-field ask) and §6 open-Qs with them BEFORE their identity API freezes — so
 pywaggle2 wraps it rather than competes. §1 (acquisition ladder) and §3 (library
-enhancements) can follow as a fuller upstream RFC to `waggle-sensor/pywaggle`,
+enhancements) can follow as a fuller upstream RFC to [waggle-sensor/pywaggle](https://github.com/waggle-sensor/pywaggle),
 anchored by image-sampler2 as the reference implementation.
 
 ### 7.1 Remaining work to "wrap up" the design
@@ -775,7 +775,7 @@ anchored by image-sampler2 as the reference implementation.
    on mobile nodes shipping and does not block v1.
 5. **Then: promote DRAFT → RFC.** Split into the two natural deliverables — a short
    §2/§6 note for the CI team's identity work (soon), and the fuller §1/§3 upstream
-   RFC to `waggle-sensor/pywaggle` anchored by image-sampler2.
+   RFC to [waggle-sensor/pywaggle](https://github.com/waggle-sensor/pywaggle) anchored by image-sampler2.
 
 The design itself is essentially complete: every API shape is pinned and the two
 hardware-verifiable premises we could reach (metadata-preserving still path on
