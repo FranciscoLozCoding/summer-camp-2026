@@ -48,6 +48,7 @@ Auth tokens: get from `portal.sagecontinuum.org/account/access`. Format: `Author
 - **Full docs catalog (summary + URL for every page):** `references/sage-docs-index.md` — pick a URL, then fetch the live page for full content
 - **Public code catalog (`waggle-sensor` org):** `references/waggle-sensor-repos-index.md` — summary + URL per public repo (private skipped)
 - **NVIDIA Jetson Thor / JetPack docs catalog:** `references/nvidia-jetson-thor-docs-index.md` — product + JetPack + Jetson Linux r39.2 Developer Guide (summary + URL; prefer Thor pages)
+- **NVIDIA agent skills (vendored):** `references/nvidia-skills-index.md` — [NVIDIA/skills](https://github.com/NVIDIA/skills) (`jetson-*`, DeepStream, TAO, …)
 - **DuckDB docs catalog:** `references/duckdb-docs-index.md` — [duckdb.org/docs](https://duckdb.org/docs/current/) summary + URL (Python/CLI, SQL, CSV/Parquet, guides)
 - **Getting started:** <https://sagecontinuum.org/docs/getting-started>
 - **Edge apps tutorial:** <https://sagecontinuum.org/docs/category/edge-apps>
@@ -730,6 +731,7 @@ Docker image naming: `registry.sagecontinuum.org/<user>/<plugin-name>:<version>`
 - **`references/milvus-sdk-helper-mcp.md`** — Milvus SDK helper MCP; camp default **Milvus Lite** (`MilvusClient("./….db")`) not full Milvus — [MCP](https://milvus.io/docs/milvus-sdk-helper-mcp.md) · [Lite](https://milvus.io/docs/milvus_lite.md)
 - **`references/huggingface-mcp-server.md`** — Hugging Face MCP remote endpoint `https://huggingface.co/mcp` ([docs](https://huggingface.co/docs/hub/en/agents-mcp)); Hermes add + HF token; tools at [settings/mcp](https://huggingface.co/settings/mcp)
 - **`references/huggingface-skills-index.md`** — vendored [huggingface/skills](https://github.com/huggingface/skills) catalog (`hf-cli`, Gradio, Spaces, training, …); pin in `skills/_vendor/`
+- **`references/nvidia-skills-index.md`** — vendored [NVIDIA/skills](https://github.com/NVIDIA/skills) catalog (~230 skills; camp priority `jetson-*`); pin in `skills/_vendor/` · [docs.nvidia.com/skills](https://docs.nvidia.com/skills)
 - **`references/github-mcp-server.md`** — GitHub MCP remote endpoint `https://api.githubcopilot.com/mcp/` ([registry](https://github.com/mcp/github/github-mcp-server)); Hermes add + PAT auth
 - **`references/ecr-public-apps-api.md`** — `GET https://ecr.sagecontinuum.org/api/apps?public=true` to list scheduleable public ECR plugins (fields, related `/apps/<ns>/<name>` URLs)
 - **`references/timeseries-data-query-api.md`** — `POST https://data.sagecontinuum.org/api/v1/query` for plugin/node timeseries (curl + `sage_data_client`; e.g. `plugin: ".*plugin-iio.*"`)

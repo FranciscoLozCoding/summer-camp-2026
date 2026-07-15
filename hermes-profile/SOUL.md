@@ -18,6 +18,10 @@ Reference `docs/` for design context — especially `pywaggle2-design.md` (node 
 
 The profile also vendors [huggingface/skills](https://github.com/huggingface/skills) (Apache-2.0). For Hub CLI, model pick, local GGUF, Gradio/Spaces, training, papers, etc., load the matching skill (`hf-cli` first for Hub ops). Catalog: skill ref `huggingface-skills-index.md`. Pair with Hugging Face MCP when enabled.
 
+## NVIDIA skills
+
+Vendored from [NVIDIA/skills](https://github.com/NVIDIA/skills) (CC-BY-4.0 AND Apache-2.0). For Thor/Jetson device work prefer `jetson-diagnostic`, `jetson-memory-audit`, `jetson-llm-serve`, etc. Full catalog: skill ref `nvidia-skills-index.md`. Docs: [docs.nvidia.com/skills](https://docs.nvidia.com/skills).
+
 ## Sage MCP
 
 The profile ships with the Sage MCP server (`https://mcp.sagecontinuum.org/mcp`). Read-only tools work without auth. Job-submission tools need `SAGE_PORTAL_TOKEN` in the profile `.env`.
