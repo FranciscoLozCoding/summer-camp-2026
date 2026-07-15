@@ -31,7 +31,7 @@ globs: ["*sage*", "*waggle*", "*plugin*sage*", "*beehive*"]
 | Edge Scheduler | `https://es.sagecontinuum.org` | Bearer token | Job submission/management |
 | MCP Server | `https://mcp.sagecontinuum.org/mcp` | None (read-only); Bearer token for job submission | 29 tools — see references/mcp-tools.md |
 | Portal | `https://portal.sagecontinuum.org` | Browser login | Node management, token generation |
-| ECR (Edge Code Repo) | `https://portal.sagecontinuum.org/apps` | Browser login | Plugin registry |
+| ECR (Edge Code Repo) | Portal: `https://portal.sagecontinuum.org/apps` · API: `GET https://ecr.sagecontinuum.org/api/apps?public=true` | List public: none | Public plugins/apps available to schedule. Per-app: `/api/apps/<ns>/<name>` · `/api/apps/<ns>/<name>/<ver>`. See `references/ecr-public-apps-api.md` |
 
 Auth / manifest details + related routes (`/computes/`, `/sensors/`, …): **`references/auth-api-manifests-and-nodes.md`**. App source: [waggle-auth-app](https://github.com/waggle-sensor/waggle-auth-app).
 
@@ -681,6 +681,7 @@ Docker image naming: `registry.sagecontinuum.org/<user>/<plugin-name>:<version>`
 
 ## See Also
 
+- **`references/ecr-public-apps-api.md`** — `GET https://ecr.sagecontinuum.org/api/apps?public=true` to list scheduleable public ECR plugins (fields, related `/apps/<ns>/<name>` URLs)
 - **`references/timeseries-data-query-api.md`** — `POST https://data.sagecontinuum.org/api/v1/query` for plugin/node timeseries (curl + `sage_data_client`; e.g. `plugin: ".*plugin-iio.*"`)
 - **`references/nvidia-jetson-thor-docs-index.md`** — catalog of [Jetson Thor](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor/), [JetPack](https://developer.nvidia.com/embedded/jetpack), and [Jetson Linux Developer Guide r39.2](https://docs.nvidia.com/jetson/archives/r39.2/DeveloperGuide/): title, summary, URL (fetch live for full content; Thor-focused quick list at top)
 - **`references/auth-api-manifests-and-nodes.md`** — `auth.sagecontinuum.org` manifests + `api/v-beta/nodes` (+ `/computes/`, `/sensors/`): URL, auth, field-level descriptions; source [waggle-auth-app](https://github.com/waggle-sensor/waggle-auth-app)
