@@ -8,10 +8,10 @@ Install on your Thor following [hermes-agent.md — Step 3A](../hermes-agent.md#
 
 ```text
 hermes-profile/
-├── distribution.yaml    # manifest (name: sage, version 1.0.2)
+├── distribution.yaml    # manifest (name: sage, version 1.0.3)
 ├── SOUL.md              # agent personality + platform domain facts
 ├── config.yaml          # Ollama default + NRP provider pre-wired (gpt-oss)
-├── mcp.json             # Sage + Milvus SDK helper MCP enabled; GitHub MCP listed (disabled until PAT)
+├── mcp.json             # Sage + Milvus SDK helper enabled; GitHub + Hugging Face MCP listed (disabled until tokens)
 ├── skills/sage-waggle/  # Sage/Waggle skill + doc indexes (Sage, Thor, DuckDB, …)
 ├── docs/                # pywaggle2 design docs + project status
 └── README.md
@@ -56,6 +56,7 @@ Launch with `sage` or `hermes -p sage`.
 | `NRP_LLM_API_KEY` | Part 2B — NRP Managed LLMs (`gpt-oss`) ([hermes-agent.md](../hermes-agent.md#part-2b-nrp-managed-llms)) |
 | `SAGE_PORTAL_TOKEN` | Sage MCP job-submission tools only — read-only MCP works without it |
 | `GITHUB_MCP_PAT` / `GITHUB_PERSONAL_ACCESS_TOKEN` | Optional GitHub MCP (`https://api.githubcopilot.com/mcp/`) — see `skills/sage-waggle/references/github-mcp-server.md` |
+| `HF_TOKEN` / `HUGGINGFACE_HUB_TOKEN` | Optional Hugging Face MCP (`https://huggingface.co/mcp`) — see `skills/sage-waggle/references/huggingface-mcp-server.md` |
 
 ## Sage access setup
 
@@ -66,9 +67,10 @@ The skill knows *how* Sage works, but you need your own access to touch nodes an
 3. **Node SSH access** — granted per-node by the instructor; ask for the exact `ssh` route and credentials.
 4. **Sage MCP** — pre-wired in `mcp.json`. Read-only tools need no token. For job-submission tools, set `SAGE_PORTAL_TOKEN` in your profile `.env` with Bearer header configured post-install.
 5. **GitHub MCP** (optional) — endpoint `https://api.githubcopilot.com/mcp/` ([registry](https://github.com/mcp/github/github-mcp-server)). In `mcp.json` as `github` with `enabled: false` until you add a PAT via `hermes mcp add` — details in `skills/sage-waggle/references/github-mcp-server.md`.
-6. **Milvus SDK Code Helper** — `https://sdk.milvus.io/mcp/` ([docs](https://milvus.io/docs/milvus-sdk-helper-mcp.md)), pre-enabled as `sdk-code-helper`. Camp default runtime: **[Milvus Lite](https://milvus.io/docs/milvus_lite.md)** (local `.db`), not a full Milvus server. See `skills/sage-waggle/references/milvus-sdk-helper-mcp.md`.
+6. **Hugging Face MCP** (optional) — endpoint `https://huggingface.co/mcp` ([docs](https://huggingface.co/docs/hub/en/agents-mcp)). In `mcp.json` as `huggingface` with `enabled: false` until you add an HF token; configure tools at [settings/mcp](https://huggingface.co/settings/mcp) — details in `skills/sage-waggle/references/huggingface-mcp-server.md`.
+7. **Milvus SDK Code Helper** — `https://sdk.milvus.io/mcp/` ([docs](https://milvus.io/docs/milvus-sdk-helper-mcp.md)), pre-enabled as `sdk-code-helper`. Camp default runtime: **[Milvus Lite](https://milvus.io/docs/milvus_lite.md)** (local `.db`), not a full Milvus server. See `skills/sage-waggle/references/milvus-sdk-helper-mcp.md`.
 
-See `skills/sage-waggle/references/mcp-tools.md` (Sage), `github-mcp-server.md` (GitHub), and `milvus-sdk-helper-mcp.md` (Milvus).
+See `skills/sage-waggle/references/mcp-tools.md` (Sage), `github-mcp-server.md` (GitHub), `huggingface-mcp-server.md` (Hugging Face), and `milvus-sdk-helper-mcp.md` (Milvus).
 
 ## Verify (smoke test)
 
@@ -123,7 +125,7 @@ Replaces distribution-owned files (SOUL, skills, mcp.json, docs). **Preserves** 
 
 ## Author / versioning
 
-- Manifest: `distribution.yaml` (`name: sage`, `version: 1.0.2`)
+- Manifest: `distribution.yaml` (`name: sage`, `version: 1.0.3`)
 - Tag releases in git (`git tag v1.0.0`) for version tracking
 - See the [Profile Distributions author guide](https://hermes-agent.nousresearch.com/docs/user-guide/profile-distributions#for-authors-publishing-a-distribution)
 

@@ -20,6 +20,8 @@ The profile ships with the Sage MCP server (`https://mcp.sagecontinuum.org/mcp`)
 
 **GitHub MCP** (optional): remote endpoint `https://api.githubcopilot.com/mcp/` — [registry page](https://github.com/mcp/github/github-mcp-server). Listed in `mcp.json` disabled until you add a GitHub PAT; see skill ref `github-mcp-server.md`.
 
+**Hugging Face MCP** (optional): remote endpoint `https://huggingface.co/mcp` — [Hub docs](https://huggingface.co/docs/hub/en/agents-mcp). Listed in `mcp.json` disabled until you add an HF token; toggle tools at [settings/mcp](https://huggingface.co/settings/mcp); see `huggingface-mcp-server.md`.
+
 **Milvus SDK Code Helper** (pre-wired): `https://sdk.milvus.io/mcp/` — [docs](https://milvus.io/docs/milvus-sdk-helper-mcp.md). Prefer **Milvus Lite** (`MilvusClient("./….db")`) over full Milvus/Docker for camp demos; see `milvus-sdk-helper-mcp.md`.
 
 **DuckDB:** for local SQL / CSV–Parquet analytics, use in-process DuckDB; doc catalog `duckdb-docs-index.md` ([duckdb.org/docs](https://duckdb.org/docs/current/)).

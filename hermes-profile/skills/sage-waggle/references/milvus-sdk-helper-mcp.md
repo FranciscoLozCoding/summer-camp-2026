@@ -79,7 +79,7 @@ Same endpoint works in Cursor / Claude / VS Code / Windsurf — see the [MCP Qui
 
 1. Default vector examples → **Milvus Lite** + local `.db` + `MilvusClient`.
 2. Use this MCP so snippets stay on current APIs (not ORM).
-3. Sage MCP = nodes/data/jobs; GitHub MCP = repos/PRs; **Milvus helper** = correct client code.
+3. Sage MCP = nodes/data/jobs; GitHub MCP = repos/PRs; Hugging Face MCP = Hub models/docs; **Milvus helper** = correct client code.
 4. Do not invent a full Milvus server deploy for a simple embedding/search demo.
 
 ## Security

@@ -31,6 +31,7 @@ globs: ["*sage*", "*waggle*", "*plugin*sage*", "*beehive*"]
 | Edge Scheduler | `https://es.sagecontinuum.org` | Bearer token | Job submission/management |
 | MCP Server (Sage) | `https://mcp.sagecontinuum.org/mcp` | None (read-only); Bearer for jobs | 29 Sage tools — `references/mcp-tools.md` |
 | MCP Server (GitHub) | `https://api.githubcopilot.com/mcp/` | Bearer GitHub PAT | Repos/issues/PRs/Actions — [registry](https://github.com/mcp/github/github-mcp-server) · `references/github-mcp-server.md` |
+| MCP Server (Hugging Face) | `https://huggingface.co/mcp` | Bearer HF token | Models/datasets/Spaces/papers/docs/Jobs — [docs](https://huggingface.co/docs/hub/en/agents-mcp) · `references/huggingface-mcp-server.md` |
 | MCP Server (Milvus SDK helper) | `https://sdk.milvus.io/mcp/` | None (`Accept: text/event-stream`) | Prefer **Milvus Lite** + `MilvusClient` — [MCP docs](https://milvus.io/docs/milvus-sdk-helper-mcp.md) · [Lite](https://milvus.io/docs/milvus_lite.md) · `references/milvus-sdk-helper-mcp.md` |
 | Portal | `https://portal.sagecontinuum.org` | Browser login | Node management, token generation |
 | ECR (Edge Code Repo) | Portal: `https://portal.sagecontinuum.org/apps` · API: `GET https://ecr.sagecontinuum.org/api/apps?public=true` | List public: none | Public plugins/apps available to schedule. Per-app: `/api/apps/<ns>/<name>` · `/api/apps/<ns>/<name>/<ver>`. See `references/ecr-public-apps-api.md` |
@@ -547,6 +548,20 @@ hermes mcp list
 
 Use for live GitHub repos/issues/PRs (e.g. `waggle-sensor/pywaggle`). Prefer `/mcp/readonly` or a read-only PAT when you only need browse access.
 
+### Hugging Face MCP (optional — enable when needed)
+
+Official server: [Hugging Face MCP docs](https://huggingface.co/docs/hub/en/agents-mcp) · remote endpoint `https://huggingface.co/mcp`.
+
+Shipped in profile `mcp.json` as **`huggingface` with `enabled: false`** until you add an HF token. Toggle tools/Spaces at [settings/mcp](https://huggingface.co/settings/mcp). Setup: **`references/huggingface-mcp-server.md`**.
+
+```bash
+hermes mcp add huggingface --url "https://huggingface.co/mcp"
+# When prompted, use Authorization Bearer <HF_TOKEN>
+hermes mcp list
+```
+
+Use for Hub models/datasets/Spaces/papers, HF documentation search, and Hub Jobs. Prefer Sage MCP for nodes/data; GitHub MCP for repos/PRs.
+
 ### Milvus SDK Code Helper (pre-wired)
 
 Official helper: [milvus.io docs](https://milvus.io/docs/milvus-sdk-helper-mcp.md) · endpoint `https://sdk.milvus.io/mcp/` (header `Accept: text/event-stream`). Shipped **enabled** in `mcp.json` as `sdk-code-helper`. Setup notes: **`references/milvus-sdk-helper-mcp.md`**.
@@ -713,6 +728,7 @@ Docker image naming: `registry.sagecontinuum.org/<user>/<plugin-name>:<version>`
 
 - **`references/duckdb-docs-index.md`** — catalog of [DuckDB docs (current)](https://duckdb.org/docs/current/): title, summary, URL (fetch live for SQL/examples; high-signal Python/CLI/CSV/Parquet list at top)
 - **`references/milvus-sdk-helper-mcp.md`** — Milvus SDK helper MCP; camp default **Milvus Lite** (`MilvusClient("./….db")`) not full Milvus — [MCP](https://milvus.io/docs/milvus-sdk-helper-mcp.md) · [Lite](https://milvus.io/docs/milvus_lite.md)
+- **`references/huggingface-mcp-server.md`** — Hugging Face MCP remote endpoint `https://huggingface.co/mcp` ([docs](https://huggingface.co/docs/hub/en/agents-mcp)); Hermes add + HF token; tools at [settings/mcp](https://huggingface.co/settings/mcp)
 - **`references/github-mcp-server.md`** — GitHub MCP remote endpoint `https://api.githubcopilot.com/mcp/` ([registry](https://github.com/mcp/github/github-mcp-server)); Hermes add + PAT auth
 - **`references/ecr-public-apps-api.md`** — `GET https://ecr.sagecontinuum.org/api/apps?public=true` to list scheduleable public ECR plugins (fields, related `/apps/<ns>/<name>` URLs)
 - **`references/timeseries-data-query-api.md`** — `POST https://data.sagecontinuum.org/api/v1/query` for plugin/node timeseries (curl + `sage_data_client`; e.g. `plugin: ".*plugin-iio.*"`)

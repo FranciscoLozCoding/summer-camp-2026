@@ -10,6 +10,11 @@
       "enabled": false,
       "timeout": 120
     },
+    "huggingface": {
+      "url": "https://huggingface.co/mcp",
+      "enabled": false,
+      "timeout": 120
+    },
     "sdk-code-helper": {
       "url": "https://sdk.milvus.io/mcp/",
       "headers": {

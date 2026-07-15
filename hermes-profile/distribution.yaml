@@ -17,6 +17,9 @@ env_requires:
   - name: GITHUB_MCP_PAT
     description: "GitHub Personal Access Token (Bearer) — only if enabling GitHub MCP at https://api.githubcopilot.com/mcp/"
     required: false
+  - name: HF_TOKEN
+    description: "Hugging Face access token (Bearer) — only if enabling Hugging Face MCP at https://huggingface.co/mcp"
+    required: false
 distribution_owned:
   - SOUL.md
   - config.yaml

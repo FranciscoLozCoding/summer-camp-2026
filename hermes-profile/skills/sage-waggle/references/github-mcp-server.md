@@ -79,7 +79,7 @@ Deprecated: npm `@modelcontextprotocol/server-github` (no longer supported upstr
 ## Camp usage tips
 
 1. Prefer GitHub MCP when you need **live** code/PRs/issues from `waggle-sensor`, student forks, or pywaggle — the skill’s `waggle-sensor-repos-index.md` is a static catalog.
-2. Keep Sage MCP (`mcp.sagecontinuum.org`) for nodes/data/jobs; use GitHub MCP for source control.
+2. Keep Sage MCP (`mcp.sagecontinuum.org`) for nodes/data/jobs; use GitHub MCP for source control; Hugging Face MCP for Hub models/docs.
 3. Use least privilege: for read-only browsing, point at `/mcp/readonly` or a PAT with read-only scopes.
 4. Re-auth / new session after changing MCP config (same quirk as Sage MCP).
 
