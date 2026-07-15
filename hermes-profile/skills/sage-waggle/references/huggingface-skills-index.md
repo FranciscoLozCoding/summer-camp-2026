@@ -2,7 +2,7 @@
 
 Catalog of agent skills copied from [huggingface/skills](https://github.com/huggingface/skills) into this profile’s `skills/` tree. Attribution + commit pin: `skills/_vendor/huggingface-skills-SOURCE.md` (Apache-2.0).
 
-Prefer **`hf-cli`** as the bootstrap skill for Hub operations. Pair Hub search/docs/Jobs with the Hugging Face **MCP** (`https://huggingface.co/mcp`) — see `huggingface-mcp-server.md`.
+Prefer **`hf-cli`** as the bootstrap skill for Hub operations — discover via **Graphify** (`graphify query`) first when unsure which HF skill applies. Pair Hub search/docs/Jobs with the Hugging Face **MCP** (`https://huggingface.co/mcp`) — see `huggingface-mcp-server.md`.
 
 Invoke with `/skill <name>` or `hermes -s <name>` (exact names below).
 

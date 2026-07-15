@@ -1,6 +1,6 @@
 name: sage
-version: 1.0.5
-description: "Sage Grande Summer Camp 2026 agent — edge computing, Waggle plugins, Thor + Ollama + Hugging Face + NVIDIA skills"
+version: 1.0.7
+description: "Sage Grande Summer Camp 2026 agent — edge computing, Waggle plugins, Thor + Ollama; Graphify-required skills/docs discovery + HF/NVIDIA skills"
 hermes_requires: ">=0.12.0"
 author: "Sage Grande / UIC EVL"
 license: "MIT"
@@ -22,8 +22,12 @@ env_requires:
     required: false
 distribution_owned:
   - SOUL.md
+  - AGENTS.md
   - config.yaml
   - mcp.json
   - skills/
   - docs/
+  - scripts/
   - distribution.yaml
+  - .graphifyignore
+  - .gitignore

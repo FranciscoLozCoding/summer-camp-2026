@@ -16,7 +16,7 @@ Invoke with `/skill <name>` or `hermes -s <name>`. Browse/install upstream with 
 | **Nemotron / NeMo** | `nemotron-*`, `nemo-retriever`, `launch-nemo-rl` | NVIDIA model customize / RL / retrieval |
 | **RAG Blueprint** | `rag-blueprint`, `rag-eval`, `rag-perf` | RAG deploy/troubleshoot |
 
-Sage/Waggle edge plugins still use **`sage-waggle`**. For Hub models use Hugging Face skills (`hf-cli`, …). This camp also ships a Thor docs URL index: `nvidia-jetson-thor-docs-index.md`.
+Sage/Waggle edge plugins still use **`sage-waggle`**. Discover skills/docs with **required Graphify** (`graphify query` / `AGENTS.md`) before grepping. For Hub models use Hugging Face skills (`hf-cli`, …). Thor docs URL index: `nvidia-jetson-thor-docs-index.md`.
 
 ## Product catalog (summary)
 

@@ -120,7 +120,7 @@ The camp maintains a Hermes **profile distribution** in this repo at [`hermes-pr
 
 | Shipped (distribution-owned) | Never shipped (user-owned) |
 | --- | --- |
-| SOUL.md, config.yaml, skills/, mcp.json, cron/ | `memories/`, `sessions/`, `auth.json`, `.env` |
+| SOUL.md, AGENTS.md, config.yaml, skills/, docs/, scripts/, mcp.json | `memories/`, `sessions/`, `auth.json`, `.env` |
 | Updated via `hermes profile update` | Preserved across updates — your brain stays isolated |
 
 ### Install from local clone (recommended)
@@ -157,9 +157,17 @@ hermes profile install github.com/FranciscoLozCoding/sage-hermes --alias
 hermes profile use sage
 cp ~/.hermes/profiles/sage/.env.EXAMPLE ~/.hermes/profiles/sage/.env
 # Edit .env if needed — add NVIDIA_API_KEY (nvapi-...) for Part 2; leave blank for Thor+Ollama
+
+# Required — Graphify knowledge graph over skills/ + docs/ (needs Ollama; can take a while)
+cd ~/.hermes/profiles/sage
+chmod +x scripts/setup-graphify.sh
+./scripts/setup-graphify.sh
+
 hermes profile info sage
 hermes doctor
 ```
+
+> **Graphify is required.** The profile ships many skills (Sage, Hugging Face, NVIDIA). Hermes must discover the right skill via `graphify-out/` (`AGENTS.md` + skill `graphify`). See [`hermes-profile/skills/sage-waggle/references/graphify-camp-guide.md`](hermes-profile/skills/sage-waggle/references/graphify-camp-guide.md). After `hermes profile update sage`, re-run `./scripts/setup-graphify.sh` (or `graphify update .` for a light refresh).
 
 Launch with `sage` or `hermes -p sage`.
 
