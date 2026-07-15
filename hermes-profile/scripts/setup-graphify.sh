@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Required camp setup: install Graphify CLI via pip + build profile skills/docs graph.
+# Required camp setup: venv + pip install Graphify + build skills/docs graph via Ollama.
 # Run from hermes-profile/ (or ~/.hermes/profiles/sage after install).
 set -euo pipefail
 
@@ -14,45 +14,98 @@ if ! command -v "$PYTHON" >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "==> Installing graphifyy[ollama] with pip (CLI: graphify)..."
-# Prefer user install so students don't need sudo; fall back for managed envs.
-"$PYTHON" -m pip install --user --upgrade 'graphifyy[ollama]' \
-  || "$PYTHON" -m pip install --upgrade 'graphifyy[ollama]'
-
-# Ensure user-site scripts are on PATH (Linux/macOS typical)
-USER_BASE="$("$PYTHON" -m site --user-base 2>/dev/null || true)"
-if [ -n "${USER_BASE:-}" ]; then
-  export PATH="${USER_BASE}/bin:${PATH}"
+# ── PEP 668-safe install: always use a project venv ──────────────────────────
+VENV="${GRAPHIFY_VENV:-$ROOT/.venv-graphify}"
+if [ ! -x "$VENV/bin/python" ]; then
+  echo "==> Creating venv at $VENV (avoids externally-managed-environment / PEP 668)..."
+  "$PYTHON" -m venv "$VENV"
 fi
-export PATH="${HOME}/.local/bin:${PATH}"
+# shellcheck disable=SC1091
+source "$VENV/bin/activate"
+PY="$VENV/bin/python"
+PIP="$VENV/bin/pip"
+GRAPHIFY="$VENV/bin/graphify"
 
-if ! command -v graphify >/dev/null 2>&1; then
-  # Some pip layouts only expose the module entrypoint
-  if "$PYTHON" -m graphify --help >/dev/null 2>&1; then
-    graphify() { "$PYTHON" -m graphify "$@"; }
-    export -f graphify
-  else
-    echo "ERROR: graphify not on PATH after pip install." >&2
-    echo "       Try: export PATH=\"\$(\"$PYTHON\" -m site --user-base)/bin:\$PATH\"" >&2
-    exit 1
-  fi
+echo "==> Installing graphifyy[ollama] into $VENV ..."
+"$PIP" install --upgrade pip
+"$PIP" install --upgrade 'graphifyy[ollama]'
+
+if [ ! -x "$GRAPHIFY" ]; then
+  echo "ERROR: $GRAPHIFY missing after pip install." >&2
+  exit 1
 fi
 
-# Record interpreter so later `graphify` / MCP serve resolve the same env
 mkdir -p graphify-out
-"$PYTHON" -c 'import sys; print(sys.executable)' > graphify-out/.graphify_python
+"$PY" -c 'import sys; print(sys.executable)' > graphify-out/.graphify_python
 
-export OLLAMA_BASE_URL="${OLLAMA_BASE_URL:-http://127.0.0.1:11434}"
+# ── Ollama OpenAI-compat URL (critical) ──────────────────────────────────────
+# graphify --backend ollama uses the OpenAI Python client.
+# Correct:  http://127.0.0.1:11434/v1   → POST .../v1/chat/completions
+# Wrong:    http://127.0.0.1:11434      → POST .../chat/completions → HTTP 404 page not found
+#
+# If OLLAMA_BASE_URL is set without /v1, normalize it here.
+_raw_url="${OLLAMA_BASE_URL:-http://127.0.0.1:11434/v1}"
+_raw_url="${_raw_url%/}"
+case "$_raw_url" in
+  */v1) ;;
+  *)
+    echo "==> NOTE: appending /v1 to OLLAMA_BASE_URL for OpenAI-compat (was: $_raw_url)"
+    _raw_url="${_raw_url}/v1"
+    ;;
+esac
+export OLLAMA_BASE_URL="$_raw_url"
 export OLLAMA_MODEL="${OLLAMA_MODEL:-gemma4:31b}"
+# OpenAI client requires a non-empty key; Ollama ignores it.
+export OLLAMA_API_KEY="${OLLAMA_API_KEY:-ollama}"
 export GRAPHIFY_OLLAMA_NUM_CTX="${GRAPHIFY_OLLAMA_NUM_CTX:-8192}"
 export GRAPHIFY_OLLAMA_KEEP_ALIVE="${GRAPHIFY_OLLAMA_KEEP_ALIVE:-0}"
 
-echo "==> OLLAMA_BASE_URL=$OLLAMA_BASE_URL OLLAMA_MODEL=$OLLAMA_MODEL"
+echo "==> OLLAMA_BASE_URL=$OLLAMA_BASE_URL"
+echo "==> OLLAMA_MODEL=$OLLAMA_MODEL"
+
+# Smoke-check OpenAI-compat endpoint before a long extract
+_native="${OLLAMA_BASE_URL%/v1}"
+echo "==> Probing Ollama..."
+if ! curl -sf "${_native}/api/tags" >/dev/null; then
+  echo "ERROR: cannot reach ${_native}/api/tags — is ollama serve running?" >&2
+  exit 1
+fi
+if ! curl -sf "${OLLAMA_BASE_URL}/models" -H "Authorization: Bearer ${OLLAMA_API_KEY}" >/dev/null; then
+  echo "ERROR: ${OLLAMA_BASE_URL}/models failed." >&2
+  echo "       Graphify needs the OpenAI-compat API (/v1/...). Upgrade Ollama or fix the URL." >&2
+  exit 1
+fi
+# Optional: verify model name exists
+if ! curl -sf "${_native}/api/tags" | grep -F "\"${OLLAMA_MODEL}\"" >/dev/null 2>&1 \
+   && ! curl -sf "${_native}/api/tags" | grep -F "${OLLAMA_MODEL%%:*}" >/dev/null 2>&1; then
+  echo "WARNING: model '${OLLAMA_MODEL}' not clearly listed in /api/tags — extract may 404 on unknown model." >&2
+  echo "         Run: ollama list   and set OLLAMA_MODEL to an exact tag." >&2
+fi
+
+# One-shot chat probe (catches wrong URL / missing model early)
+echo "==> Probing ${OLLAMA_BASE_URL}/chat/completions with model=${OLLAMA_MODEL}..."
+_probe_code=$(curl -s -o /tmp/graphify_ollama_probe.json -w "%{http_code}" \
+  -X POST "${OLLAMA_BASE_URL}/chat/completions" \
+  -H "Authorization: Bearer ${OLLAMA_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d "{\"model\":\"${OLLAMA_MODEL}\",\"messages\":[{\"role\":\"user\",\"content\":\"ping\"}],\"max_tokens\":8}")
+if [ "$_probe_code" != "200" ]; then
+  echo "ERROR: chat/completions returned HTTP ${_probe_code} (body follows):" >&2
+  cat /tmp/graphify_ollama_probe.json >&2 || true
+  echo >&2
+  echo "Common fixes:" >&2
+  echo "  - OLLAMA_BASE_URL must end with /v1 (OpenAI compat), not bare :11434" >&2
+  echo "  - OLLAMA_MODEL must match \`ollama list\` exactly (404 often = unknown model)" >&2
+  echo "  - Ensure ollama serve supports /v1/chat/completions" >&2
+  exit 1
+fi
+echo "==> Probe OK (HTTP 200)"
+
 echo "==> Extracting knowledge graph (skills/ + docs/; respects .graphifyignore)..."
 echo "    This can take a long time on Thor — prefer when Hermes chat is idle."
 
-graphify extract . --backend ollama
+"$GRAPHIFY" extract . --backend ollama
 
 echo "==> Done. Outputs under $ROOT/graphify-out/"
-echo "    GRAPH_REPORT.md  graph.json  graph.html"
-echo "    Hermes uses AGENTS.md + skills/graphify — query before grepping skills."
+echo "    Use: $GRAPHIFY query \"...\" --graph graphify-out/graph.json"
+echo "    Or activate: source $VENV/bin/activate"
