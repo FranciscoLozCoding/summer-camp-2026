@@ -4,6 +4,11 @@
       "url": "https://mcp.sagecontinuum.org/mcp",
       "enabled": true,
       "timeout": 120
+    },
+    "github": {
+      "url": "https://api.githubcopilot.com/mcp/",
+      "enabled": false,
+      "timeout": 120
     }
   }
 }

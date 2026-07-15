@@ -29,7 +29,8 @@ globs: ["*sage*", "*waggle*", "*plugin*sage*", "*beehive*"]
 | Manifests (rich) | `GET https://auth.sagecontinuum.org/manifests/` · `.../manifests/<vsn>` | None | Full node hardware + sensor **URI**s. Collection needs trailing `/`; single VSN slash optional. Prefer per-VSN (full list ≈2MB+). `?project=` |
 | Nodes (beta) | `GET https://auth.sagecontinuum.org/api/v-beta/nodes/` · `.../nodes/<vsn>` | None | Flatter node card (type, site, partner, focus, modem). Filters: `?phase=`, `?project__name=` (comma=OR) |
 | Edge Scheduler | `https://es.sagecontinuum.org` | Bearer token | Job submission/management |
-| MCP Server | `https://mcp.sagecontinuum.org/mcp` | None (read-only); Bearer token for job submission | 29 tools — see references/mcp-tools.md |
+| MCP Server (Sage) | `https://mcp.sagecontinuum.org/mcp` | None (read-only); Bearer for jobs | 29 Sage tools — `references/mcp-tools.md` |
+| MCP Server (GitHub) | `https://api.githubcopilot.com/mcp/` | Bearer GitHub PAT | Repos/issues/PRs/Actions — registry: [github-mcp-server](https://github.com/mcp/github/github-mcp-server) · `references/github-mcp-server.md` |
 | Portal | `https://portal.sagecontinuum.org` | Browser login | Node management, token generation |
 | ECR (Edge Code Repo) | Portal: `https://portal.sagecontinuum.org/apps` · API: `GET https://ecr.sagecontinuum.org/api/apps?public=true` | List public: none | Public plugins/apps available to schedule. Per-app: `/api/apps/<ns>/<name>` · `/api/apps/<ns>/<name>/<ver>`. See `references/ecr-public-apps-api.md` |
 
@@ -516,6 +517,8 @@ Large files (images, audio): stored on Open Storage Network (S3-compatible objec
 
 ## Hermes Native MCP Integration
 
+### Sage MCP (pre-wired)
+
 Wire up the Sage MCP server as a native Hermes tool so all 29 tools are callable directly (no curl/JSON-RPC):
 
 ```bash
@@ -527,6 +530,20 @@ hermes mcp list
 ```
 
 After adding, start a new session. Tools appear as `mcp_sage_*` (e.g. `mcp_sage_list_available_nodes`, `mcp_sage_find_plugins_for_task`). No auth needed for read-only operations (data queries, node listing, plugin search, docs). Job submission tools (`submit_sage_job`, `submit_plugin_job`) require a Bearer token configured via portal.
+
+### GitHub MCP (optional — enable when needed)
+
+Official server: [MCP Registry — GitHub](https://github.com/mcp/github/github-mcp-server) · remote endpoint `https://api.githubcopilot.com/mcp/`.
+
+Shipped in profile `mcp.json` as **`github` with `enabled: false`** until you add a PAT. Setup: **`references/github-mcp-server.md`**.
+
+```bash
+hermes mcp add github --url "https://api.githubcopilot.com/mcp/"
+# When prompted, use Authorization Bearer <GITHUB_PAT>
+hermes mcp list
+```
+
+Use for live GitHub repos/issues/PRs (e.g. `waggle-sensor/pywaggle`). Prefer `/mcp/readonly` or a read-only PAT when you only need browse access.
 
 ## Working with This Project
 
@@ -681,6 +698,7 @@ Docker image naming: `registry.sagecontinuum.org/<user>/<plugin-name>:<version>`
 
 ## See Also
 
+- **`references/github-mcp-server.md`** — GitHub MCP remote endpoint `https://api.githubcopilot.com/mcp/` ([registry](https://github.com/mcp/github/github-mcp-server)); Hermes add + PAT auth
 - **`references/ecr-public-apps-api.md`** — `GET https://ecr.sagecontinuum.org/api/apps?public=true` to list scheduleable public ECR plugins (fields, related `/apps/<ns>/<name>` URLs)
 - **`references/timeseries-data-query-api.md`** — `POST https://data.sagecontinuum.org/api/v1/query` for plugin/node timeseries (curl + `sage_data_client`; e.g. `plugin: ".*plugin-iio.*"`)
 - **`references/nvidia-jetson-thor-docs-index.md`** — catalog of [Jetson Thor](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor/), [JetPack](https://developer.nvidia.com/embedded/jetpack), and [Jetson Linux Developer Guide r39.2](https://docs.nvidia.com/jetson/archives/r39.2/DeveloperGuide/): title, summary, URL (fetch live for full content; Thor-focused quick list at top)

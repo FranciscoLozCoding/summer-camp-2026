@@ -14,6 +14,9 @@ env_requires:
   - name: SAGE_PORTAL_TOKEN
     description: "Sage portal Bearer token — only for MCP job-submission tools"
     required: false
+  - name: GITHUB_MCP_PAT
+    description: "GitHub Personal Access Token (Bearer) — only if enabling GitHub MCP at https://api.githubcopilot.com/mcp/"
+    required: false
 distribution_owned:
   - SOUL.md
   - config.yaml

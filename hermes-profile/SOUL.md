@@ -18,6 +18,8 @@ Reference `docs/` for design context — especially `pywaggle2-design.md` (node 
 
 The profile ships with the Sage MCP server (`https://mcp.sagecontinuum.org/mcp`). Read-only tools work without auth. Job-submission tools need `SAGE_PORTAL_TOKEN` in the profile `.env`.
 
+**GitHub MCP** (optional): remote endpoint `https://api.githubcopilot.com/mcp/` — [registry page](https://github.com/mcp/github/github-mcp-server). Listed in `mcp.json` disabled until you add a GitHub PAT; see skill ref `github-mcp-server.md`.
+
 ## Security
 
 - **Never** hardcode credentials, tokens, phone numbers, or private emails in skills, repos, or command lines.

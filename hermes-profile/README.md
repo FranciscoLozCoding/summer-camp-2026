@@ -11,7 +11,7 @@ hermes-profile/
 ├── distribution.yaml    # manifest (name: sage, version 1.0.2)
 ├── SOUL.md              # agent personality + platform domain facts
 ├── config.yaml          # Ollama default + NRP provider pre-wired (gpt-oss)
-├── mcp.json             # Sage MCP server pre-wired
+├── mcp.json             # Sage MCP pre-wired; GitHub MCP endpoint listed (disabled until PAT)
 ├── skills/sage-waggle/  # Sage/Waggle skill (~70 reference files)
 ├── docs/                # pywaggle2 design docs + project status
 └── README.md
@@ -55,6 +55,7 @@ Launch with `sage` or `hermes -p sage`.
 | `NVIDIA_API_KEY` | Part 2 — NVIDIA Build inference ([hermes-agent.md](../hermes-agent.md#part-2-nvidia-hosted-apis)) |
 | `NRP_LLM_API_KEY` | Part 2B — NRP Managed LLMs (`gpt-oss`) ([hermes-agent.md](../hermes-agent.md#part-2b-nrp-managed-llms)) |
 | `SAGE_PORTAL_TOKEN` | Sage MCP job-submission tools only — read-only MCP works without it |
+| `GITHUB_MCP_PAT` / `GITHUB_PERSONAL_ACCESS_TOKEN` | Optional GitHub MCP (`https://api.githubcopilot.com/mcp/`) — see `skills/sage-waggle/references/github-mcp-server.md` |
 
 ## Sage access setup
 
@@ -64,8 +65,9 @@ The skill knows *how* Sage works, but you need your own access to touch nodes an
 2. **Portal access token** (for protected data downloads) — generate at <https://portal.sagecontinuum.org/account/access>. Keep in a file you control (e.g. `~/.sage/token.txt`) — never commit it.
 3. **Node SSH access** — granted per-node by the instructor; ask for the exact `ssh` route and credentials.
 4. **Sage MCP** — pre-wired in `mcp.json`. Read-only tools need no token. For job-submission tools, set `SAGE_PORTAL_TOKEN` in your profile `.env` with Bearer header configured post-install.
+5. **GitHub MCP** (optional) — endpoint `https://api.githubcopilot.com/mcp/` ([registry](https://github.com/mcp/github/github-mcp-server)). In `mcp.json` as `github` with `enabled: false` until you add a PAT via `hermes mcp add` — details in `skills/sage-waggle/references/github-mcp-server.md`.
 
-See `skills/sage-waggle/references/mcp-tools.md` for MCP tool details.
+See `skills/sage-waggle/references/mcp-tools.md` (Sage) and `skills/sage-waggle/references/github-mcp-server.md` (GitHub).
 
 ## Verify (smoke test)
 
