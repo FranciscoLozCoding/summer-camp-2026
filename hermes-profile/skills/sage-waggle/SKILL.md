@@ -47,6 +47,7 @@ Auth tokens: get from `portal.sagecontinuum.org/account/access`. Format: `Author
 - **Full docs catalog (summary + URL for every page):** `references/sage-docs-index.md` — pick a URL, then fetch the live page for full content
 - **Public code catalog (`waggle-sensor` org):** `references/waggle-sensor-repos-index.md` — summary + URL per public repo (private skipped)
 - **NVIDIA Jetson Thor / JetPack docs catalog:** `references/nvidia-jetson-thor-docs-index.md` — product + JetPack + Jetson Linux r39.2 Developer Guide (summary + URL; prefer Thor pages)
+- **DuckDB docs catalog:** `references/duckdb-docs-index.md` — [duckdb.org/docs](https://duckdb.org/docs/current/) summary + URL (Python/CLI, SQL, CSV/Parquet, guides)
 - **Getting started:** <https://sagecontinuum.org/docs/getting-started>
 - **Edge apps tutorial:** <https://sagecontinuum.org/docs/category/edge-apps>
 - **pluginctl reference:** <https://sagecontinuum.org/docs/reference-guides/pluginctl> · tutorials: <https://github.com/waggle-sensor/edge-scheduler/tree/main/docs/pluginctl>
@@ -710,6 +711,7 @@ Docker image naming: `registry.sagecontinuum.org/<user>/<plugin-name>:<version>`
 
 ## See Also
 
+- **`references/duckdb-docs-index.md`** — catalog of [DuckDB docs (current)](https://duckdb.org/docs/current/): title, summary, URL (fetch live for SQL/examples; high-signal Python/CLI/CSV/Parquet list at top)
 - **`references/milvus-sdk-helper-mcp.md`** — Milvus SDK helper MCP; camp default **Milvus Lite** (`MilvusClient("./….db")`) not full Milvus — [MCP](https://milvus.io/docs/milvus-sdk-helper-mcp.md) · [Lite](https://milvus.io/docs/milvus_lite.md)
 - **`references/github-mcp-server.md`** — GitHub MCP remote endpoint `https://api.githubcopilot.com/mcp/` ([registry](https://github.com/mcp/github/github-mcp-server)); Hermes add + PAT auth
 - **`references/ecr-public-apps-api.md`** — `GET https://ecr.sagecontinuum.org/api/apps?public=true` to list scheduleable public ECR plugins (fields, related `/apps/<ns>/<name>` URLs)

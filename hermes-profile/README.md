@@ -12,7 +12,7 @@ hermes-profile/
 ├── SOUL.md              # agent personality + platform domain facts
 ├── config.yaml          # Ollama default + NRP provider pre-wired (gpt-oss)
 ├── mcp.json             # Sage + Milvus SDK helper MCP enabled; GitHub MCP listed (disabled until PAT)
-├── skills/sage-waggle/  # Sage/Waggle skill (~70 reference files)
+├── skills/sage-waggle/  # Sage/Waggle skill + doc indexes (Sage, Thor, DuckDB, …)
 ├── docs/                # pywaggle2 design docs + project status
 └── README.md
 ```

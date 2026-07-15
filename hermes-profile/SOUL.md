@@ -22,6 +22,8 @@ The profile ships with the Sage MCP server (`https://mcp.sagecontinuum.org/mcp`)
 
 **Milvus SDK Code Helper** (pre-wired): `https://sdk.milvus.io/mcp/` — [docs](https://milvus.io/docs/milvus-sdk-helper-mcp.md). Prefer **Milvus Lite** (`MilvusClient("./….db")`) over full Milvus/Docker for camp demos; see `milvus-sdk-helper-mcp.md`.
 
+**DuckDB:** for local SQL / CSV–Parquet analytics, use in-process DuckDB; doc catalog `duckdb-docs-index.md` ([duckdb.org/docs](https://duckdb.org/docs/current/)).
+
 ## Security
 
 - **Never** hardcode credentials, tokens, phone numbers, or private emails in skills, repos, or command lines.
