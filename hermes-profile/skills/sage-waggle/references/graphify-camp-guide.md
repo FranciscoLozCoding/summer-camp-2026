@@ -62,7 +62,7 @@ export OLLAMA_MODEL=gemma4:31b          # exact tag from `ollama list`
 export OLLAMA_API_KEY=ollama            # any non-empty string; Ollama ignores auth
 export GRAPHIFY_OLLAMA_KEEP_ALIVE=0
 # Leave GRAPHIFY_OLLAMA_NUM_CTX unset (auto). Do not force 8192 — truncates big chunks.
-graphify extract . --backend ollama --token-budget 25000
+graphify extract . --backend ollama --token-budget 25000 --max-concurrency 1 --api-timeout 1800
 ```
 
 ### `GRAPHIFY_OLLAMA_NUM_CTX` smaller than chunk (~57k) warning

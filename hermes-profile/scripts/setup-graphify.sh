@@ -85,6 +85,7 @@ Usage: setup-graphify.sh [--status|--stop|--foreground]
   --stop        Kill background setup job.
 
 Env: OLLAMA_BASE_URL (must end in /v1), OLLAMA_MODEL, GRAPHIFY_TOKEN_BUDGET (default 25000),
+     GRAPHIFY_MAX_CONCURRENCY (default 1), GRAPHIFY_API_TIMEOUT (default 1800s),
      GRAPHIFY_FOREGROUND=1 (same as --foreground), GRAPHIFY_VENV, GRAPHIFY_OLLAMA_NUM_CTX
 EOF
     exit 0
@@ -125,6 +126,8 @@ EOF
     OLLAMA_MODEL="${OLLAMA_MODEL:-}" \
     OLLAMA_API_KEY="${OLLAMA_API_KEY:-}" \
     GRAPHIFY_TOKEN_BUDGET="${GRAPHIFY_TOKEN_BUDGET:-}" \
+    GRAPHIFY_MAX_CONCURRENCY="${GRAPHIFY_MAX_CONCURRENCY:-}" \
+    GRAPHIFY_API_TIMEOUT="${GRAPHIFY_API_TIMEOUT:-}" \
     GRAPHIFY_OLLAMA_NUM_CTX="${GRAPHIFY_OLLAMA_NUM_CTX:-}" \
     GRAPHIFY_OLLAMA_KEEP_ALIVE="${GRAPHIFY_OLLAMA_KEEP_ALIVE:-}" \
     GRAPHIFY_VENV="${GRAPHIFY_VENV:-}" \
@@ -190,10 +193,14 @@ else
   echo "==> GRAPHIFY_OLLAMA_NUM_CTX=auto (graphify derives from chunk size)"
 fi
 TOKEN_BUDGET="${GRAPHIFY_TOKEN_BUDGET:-25000}"
+# Parallel LLM calls (graphify default 4) thrash a single Thor+31B → Request timed out.
+MAX_CONCURRENCY="${GRAPHIFY_MAX_CONCURRENCY:-1}"
+# 25k-token chunks on gemma4:31b often need >10 min; default 600s is too short.
+API_TIMEOUT="${GRAPHIFY_API_TIMEOUT:-1800}"
 
 echo "==> OLLAMA_BASE_URL=$OLLAMA_BASE_URL"
 echo "==> OLLAMA_MODEL=$OLLAMA_MODEL"
-echo "==> --token-budget=$TOKEN_BUDGET"
+echo "==> --token-budget=$TOKEN_BUDGET --max-concurrency=$MAX_CONCURRENCY --api-timeout=$API_TIMEOUT"
 
 _native="${OLLAMA_BASE_URL%/v1}"
 echo "==> Probing Ollama..."
@@ -224,8 +231,12 @@ fi
 echo "==> Probe OK (HTTP 200)"
 
 echo "==> Extracting knowledge graph (skills/ + docs/) — this is the long step..."
+echo "    ~170+ semantic chunks at concurrency=$MAX_CONCURRENCY; expect hours if many timeouts previously."
 set +e
-"$GRAPHIFY" extract . --backend ollama --token-budget "$TOKEN_BUDGET"
+"$GRAPHIFY" extract . --backend ollama \
+  --token-budget "$TOKEN_BUDGET" \
+  --max-concurrency "$MAX_CONCURRENCY" \
+  --api-timeout "$API_TIMEOUT"
 _rc=$?
 set -e
 
