@@ -51,11 +51,18 @@ pip install --upgrade 'graphifyy[ollama]'
 export OLLAMA_BASE_URL=http://127.0.0.1:11434/v1
 export OLLAMA_MODEL=gemma4:31b          # exact tag from `ollama list`
 export OLLAMA_API_KEY=ollama            # any non-empty string; Ollama ignores auth
-export GRAPHIFY_OLLAMA_NUM_CTX=8192
 export GRAPHIFY_OLLAMA_KEEP_ALIVE=0
-
-graphify extract . --backend ollama
+# Leave GRAPHIFY_OLLAMA_NUM_CTX unset (auto). Do not force 8192 — truncates big chunks.
+graphify extract . --backend ollama --token-budget 25000
 ```
+
+### `GRAPHIFY_OLLAMA_NUM_CTX` smaller than chunk (~57k) warning
+
+If extract logs that `NUM_CTX` is below estimated chunk input, prompts are truncated and the graph can be empty/hollow.
+
+- **Camp fix:** do not set `GRAPHIFY_OLLAMA_NUM_CTX` (let graphify auto-size) and use `--token-budget 25000` (default in `setup-graphify.sh`).
+- **Low-VRAM only:** pair a small ctx with a matching budget, e.g. `GRAPHIFY_OLLAMA_NUM_CTX=16384 GRAPHIFY_TOKEN_BUDGET=4000`.
+- If a background run started under the old `NUM_CTX=8192` default, **stop it and re-run** `./scripts/setup-graphify.sh` after pulling this fix.
 
 Outputs:
 

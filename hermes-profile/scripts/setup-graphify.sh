@@ -57,11 +57,26 @@ export OLLAMA_BASE_URL="$_raw_url"
 export OLLAMA_MODEL="${OLLAMA_MODEL:-gemma4:31b}"
 # OpenAI client requires a non-empty key; Ollama ignores it.
 export OLLAMA_API_KEY="${OLLAMA_API_KEY:-ollama}"
-export GRAPHIFY_OLLAMA_NUM_CTX="${GRAPHIFY_OLLAMA_NUM_CTX:-8192}"
+# Unload after each chunk so Hermes chat can reclaim VRAM on Thor.
 export GRAPHIFY_OLLAMA_KEEP_ALIVE="${GRAPHIFY_OLLAMA_KEEP_ALIVE:-0}"
+#
+# Do NOT default GRAPHIFY_OLLAMA_NUM_CTX to a small value (e.g. 8192).
+# Graphify auto-sizes num_ctx from chunk size; forcing 8k while chunks are
+# ~30–60k tokens truncates prompts → empty/invalid JSON and hollow graphs.
+# Override only when you also shrink --token-budget to match, e.g.:
+#   GRAPHIFY_OLLAMA_NUM_CTX=16384 GRAPHIFY_TOKEN_BUDGET=4000 ./scripts/setup-graphify.sh
+if [ -n "${GRAPHIFY_OLLAMA_NUM_CTX:-}" ]; then
+  export GRAPHIFY_OLLAMA_NUM_CTX
+  echo "==> GRAPHIFY_OLLAMA_NUM_CTX=$GRAPHIFY_OLLAMA_NUM_CTX (manual override)"
+else
+  echo "==> GRAPHIFY_OLLAMA_NUM_CTX=auto (graphify derives from chunk size)"
+fi
+# Camp Thor default: 25000 (between Graphify's 60k default and a conservative 12k).
+TOKEN_BUDGET="${GRAPHIFY_TOKEN_BUDGET:-25000}"
 
 echo "==> OLLAMA_BASE_URL=$OLLAMA_BASE_URL"
 echo "==> OLLAMA_MODEL=$OLLAMA_MODEL"
+echo "==> --token-budget=$TOKEN_BUDGET"
 
 # Smoke-check OpenAI-compat endpoint before a long extract
 _native="${OLLAMA_BASE_URL%/v1}"
@@ -103,8 +118,9 @@ echo "==> Probe OK (HTTP 200)"
 
 echo "==> Extracting knowledge graph (skills/ + docs/; respects .graphifyignore)..."
 echo "    This can take a long time on Thor — prefer when Hermes chat is idle."
+echo "    Tip: if a previous run warned NUM_CTX << chunk size, kill it and re-run this script."
 
-"$GRAPHIFY" extract . --backend ollama
+"$GRAPHIFY" extract . --backend ollama --token-budget "$TOKEN_BUDGET"
 
 echo "==> Done. Outputs under $ROOT/graphify-out/"
 echo "    Use: $GRAPHIFY query \"...\" --graph graphify-out/graph.json"
