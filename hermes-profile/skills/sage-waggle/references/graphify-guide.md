@@ -7,18 +7,20 @@
 | **Upstream** | <https://github.com/Graphify-Labs/graphify> |
 | **Bundled skill** | `skills/graphify/` (Hermes/claw skill bundle) |
 | **Always-on rules** | profile `AGENTS.md` |
-| **Setup script** | `scripts/setup-graphify.sh` (baseline unpack, or Hermes-aligned extract) |
+| **Setup script** | `scripts/setup-graphify.sh` — **initial setup only** (baseline unpack or first extract) |
 | **Camp baseline** | `graphify-baseline.tar.gz` (prebuilt `graphify-out/`; preferred init) |
+| **After init** | skill **`graphify`** for query / path / explain / `--update` |
 | **Corpus** | `skills/` + `docs/` (see `.graphifyignore`) |
 | **PyPI** | `graphifyy` (CLI: `graphify`) |
 | **Venv** | `.venv-graphify/` (created by the setup script) |
 
 ## Agent protocol (non-negotiable)
 
-1. If `graphify-out/graph.json` exists → `graphify query` / `path` / `explain` **before** mass-reading skills.
-2. If the graph is missing → run `scripts/setup-graphify.sh`. Prefer camp **`graphify-baseline.tar.gz`** (seconds). Only fall back to a long LLM extract when the baseline is absent or `--rebuild` is needed.
-3. Load the **specific** skill the graph points to (`sage-waggle`, `jetson-llm-serve`, `hf-cli`, …).
-4. Use Sage / HF MCP for live data; Graphify indexes **this profile’s** skills and docs only.
+1. If `graphify-out/graph.json` exists → skill **`graphify`**: `query` / `path` / `explain` **before** mass-reading skills. **Do not** run `setup-graphify.sh` again for day-to-day Graphify use.
+2. If the graph is **missing** → **initial setup only:** run `scripts/setup-graphify.sh` (prefer `graphify-baseline.tar.gz`). That script is not the ongoing update path.
+3. If the graph exists and files were **added or changed** → skill **`graphify`** (`/graphify . --update`). **Do not** use `./scripts/setup-graphify.sh --rebuild` for incremental adds — `--rebuild` is **start from scratch** only.
+4. Load the **specific** skill the graph points to (`sage-waggle`, `jetson-llm-serve`, `hf-cli`, …).
+5. Use Sage / HF MCP for live data; Graphify indexes **this profile’s** skills and docs only.
 
 Complementary routers: `nvidia-skill-finder`, `huggingface-skills-index.md`, `nvidia-skills-index.md` — still prefer the graph first when unsure.
 
@@ -29,7 +31,7 @@ After `hermes profile install ./hermes-profile --name sage --alias`:
 **Hermes CWD is usually `$HOME` (e.g. `/root`), not the profile.** Relative `bash scripts/setup-graphify.sh` → exit 127. Always use an absolute path (or `cd` into the profile first).
 
 ```bash
-# Absolute path (what Hermes should run):
+# Absolute path (initial setup only — what Hermes should run when graph.json is missing):
 SETUP="$HOME/.hermes/profiles/sage/scripts/setup-graphify.sh"
 # or: SETUP="$HOME/summer-camp-2026/hermes-profile/scripts/setup-graphify.sh"
 
@@ -37,35 +39,41 @@ bash "$SETUP"           # unpacks graphify-baseline.tar.gz when present (fast)
 bash "$SETUP" --status  # confirm graph.json
 ```
 
-Manual from profile root:
+After that, **all Graphify usage goes through skill `graphify`**.
+
+Manual from profile root (initial):
 
 ```bash
 cd ~/.hermes/profiles/sage   # or the cloned hermes-profile/
 
 chmod +x scripts/setup-graphify.sh
-./scripts/setup-graphify.sh              # baseline unpack (default)
+./scripts/setup-graphify.sh              # initial: baseline unpack (default)
 ./scripts/setup-graphify.sh --status
-./scripts/setup-graphify.sh --from-baseline  # force re-unpack
-./scripts/setup-graphify.sh --rebuild        # full LLM extract (hours)
-# After a fresh extract, refresh the shipped archive:
+# Start-from-scratch ONLY (replace entire graph — not for new files on an existing graph):
+# ./scripts/setup-graphify.sh --rebuild
+# Instructor: after a scratch rebuild, refresh the shipped archive:
 # ./scripts/setup-graphify.sh --pack-baseline
 ```
 
-Foreground only if you intentionally want to watch the whole run:
+### Updating an existing graph (new/changed skills or docs)
+
+**Use the graphify skill**, not the setup script:
 
 ```bash
-./scripts/setup-graphify.sh --foreground
+cd ~/.hermes/profiles/sage
+source .venv-graphify/bin/activate
+# Prefer: /graphify . --update inside Hermes (loads skill graphify)
+graphify update .    # CLI equivalent when following the skill
 ```
 
 The script:
 
-1. **Prefers `graphify-baseline.tar.gz`** — unpacks a prebuilt graph in seconds (camp default)
-2. Creates `.venv-graphify` and installs `graphifyy` so `graphify query` works
-3. Only if no baseline (or `--rebuild`) → long LLM extract (background by default)
-4. Extract follows Hermes `config.yaml` model (Ollama or OpenAI-compat like NRP)
-5. `--pack-baseline` rebuilds the shipped tarball after a fresh extract
+1. **Initial only** — creates/unpacks `graphify-out/` once (baseline preferred)
+2. Creates `.venv-graphify` and installs `graphifyy` so the Graphify CLI works
+3. `--rebuild` / `--foreground` — **wipe and rebuild from scratch** (hours); not for incremental file adds
+4. `--pack-baseline` — instructor: ship a new tarball after a scratch rebuild
 
-**Expect:** Full semantic extract over ~1.8K files is slow. Instructors should ship an updated `graphify-baseline.tar.gz` (`--pack-baseline`) after skill/doc changes so students skip extract.
+**Expect:** Full semantic extract is slow. Students should get a warm graph from `graphify-baseline.tar.gz`. Day-to-day updates use skill **`graphify`**.
 
 Manual equivalent (Ollama):
 

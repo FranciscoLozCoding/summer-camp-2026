@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
-# Required camp setup: install Graphify CLI + ensure graphify-out/graph.json.
+# INITIAL SETUP ONLY for camp Graphify (not day-to-day graph updates).
 #
-# Fast path (default): unpack graphify-baseline.tar.gz (prebuilt camp graph).
-# Slow path: LLM extract (--rebuild / --foreground), Hermes-aligned backend.
+# After graphify-out/graph.json exists, agents must use skill `graphify`
+# (query / path / explain / --update). Do NOT re-run this script to add files.
 #
-#   ./scripts/setup-graphify.sh                 # baseline unpack or background extract
-#   ./scripts/setup-graphify.sh --from-baseline  # force unpack tarball
-#   ./scripts/setup-graphify.sh --pack-baseline  # refresh tarball from graphify-out/
+# --rebuild = start from scratch (replace the whole graph), not incremental update.
+#
+#   ./scripts/setup-graphify.sh                 # initial: baseline unpack or first extract
+#   ./scripts/setup-graphify.sh --from-baseline  # re-unpack shipped tarball
+#   ./scripts/setup-graphify.sh --pack-baseline  # instructor: refresh tarball
 #   ./scripts/setup-graphify.sh --status
 #   ./scripts/setup-graphify.sh --stop
-#   ./scripts/setup-graphify.sh --rebuild        # full LLM extract (long)
+#   ./scripts/setup-graphify.sh --rebuild        # FROM SCRATCH only (long)
 #
 set -euo pipefail
 
@@ -223,13 +225,16 @@ case "$_cmd" in
     cat <<'EOF'
 Usage: setup-graphify.sh [--status|--stop|--from-baseline|--pack-baseline|--foreground|--rebuild]
 
-  (default)          If graphify-out/graph.json exists → done.
-                     Else if graphify-baseline.tar.gz exists → unpack it (fast).
-                     Else start a BACKGROUND LLM extract.
+  INITIAL SETUP ONLY. Once graphify-out/graph.json exists, use skill `graphify`
+  for query/update — do not re-run this script to add new files.
+
+  (default)          If graph.json exists → remind to use skill graphify; exit.
+                     Else if graphify-baseline.tar.gz exists → unpack (fast).
+                     Else start a BACKGROUND first-time LLM extract.
   --from-baseline    Unpack graphify-baseline.tar.gz (overwrite graphify-out/).
   --pack-baseline    Rebuild graphify-baseline.tar.gz from current graphify-out/.
-  --foreground       Full LLM extract in this terminal (blocks a long time).
-  --rebuild          Same as --foreground (ignore baseline; rebuild from scratch).
+  --foreground       First-time / scratch extract in this terminal (long).
+  --rebuild          START FROM SCRATCH (full extract; not for incremental adds).
   --status           Show running job / graph readiness / recent log.
   --stop             Kill background setup job.
 
@@ -260,8 +265,11 @@ fi
 if [ "$_want_fg" -eq 0 ] && [ "${GRAPHIFY_FORCE_EXTRACT:-}" != "1" ]; then
   if [ -f "$GRAPH_JSON" ]; then
     echo "Graph already ready: $GRAPH_JSON"
-    echo "  Re-unpack baseline: $SELF --from-baseline"
-    echo "  Full rebuild:       $SELF --rebuild"
+    echo "  setup-graphify.sh is INITIAL SETUP only."
+    echo "  For query / path / explain / adding files → use skill graphify"
+    echo "    (e.g. /graphify query \"...\"  or  /graphify . --update)"
+    echo "  Start-from-scratch only: $SELF --rebuild"
+    echo "  Re-unpack shipped baseline: $SELF --from-baseline"
     exit 0
   fi
   if [ -f "$BASELINE" ]; then
