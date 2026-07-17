@@ -36,7 +36,7 @@ Follow each step in order and collect the required screenshots as evidence that 
 
 If you need to access the router from outside the local network, complete these additional steps:
 
-6. In the side panel, go to **VPN → WireGuard Server** and press **Start**.
+6. In the side panel, go to **VPN → WireGuard Server**, generate configuration, and press **Start**.
 7. Click **View Status**, scroll down to the VPN Server section, click the settings on WireGuard, and enable **Allow Remote Access LAN**.
    <img width="1136" height="70" alt="image" src="https://github.com/user-attachments/assets/8ddb3dc6-c2f2-480c-afcf-952e0eb27d20" />
    <img width="766" height="410" alt="image" src="https://github.com/user-attachments/assets/4afd15ba-aa4c-4665-b6ec-6c163e6c2667" />
