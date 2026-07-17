@@ -11,7 +11,6 @@ Every participant has their **own Linux account** on the Thor. Hermes installs i
 | [Part 2 — NVIDIA Hosted APIs](#part-2-nvidia-hosted-apis) | Cloud inference via NVIDIA Build (no Ollama needed) |
 | [Part 2B — NRP Managed LLMs](#part-2b-nrp-managed-llms) | Cloud inference via NRP Nautilus (`gpt-oss` default) |
 | [Part 3 — Transferring the brain](#part-3-transferring-the-brain) | Share agent config or move to a new machine via profile distribution |
-| [Step 4 — Verify Ollama on the Thor](#step-4-verify-ollama-on-the-thor) | Verify that Hermes can connect to Ollama |
 | [Comparison](#inference-options-compared) | Choosing between inference approaches |
 | [Switching between approaches](#switching-between-approaches) | Swap providers without reinstalling |
 | [Token economy](#token-economy) | Manage context, cost, and fair use across providers |
