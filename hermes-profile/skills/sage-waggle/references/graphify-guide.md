@@ -12,15 +12,16 @@
 | **After init** | skill **`graphify`** for query / path / explain / `--update` |
 | **Corpus** | `skills/` + `docs/` (see `.graphifyignore`) |
 | **PyPI** | `graphifyy` (CLI: `graphify`) |
-| **Venv** | `.venv-graphify/` (created by the setup script) |
+| **Venv (required)** | **`.venv-graphify/`** at profile root — always use this for CLI/`import graphify` |
 
 ## Agent protocol (non-negotiable)
 
 1. If `graphify-out/graph.json` exists → skill **`graphify`**: `query` / `path` / `explain` **before** mass-reading skills. **Do not** run `setup-graphify.sh` again for day-to-day Graphify use.
-2. If the graph is **missing** → **initial setup only:** run `scripts/setup-graphify.sh` (prefer `graphify-baseline.tar.gz`). That script is not the ongoing update path.
-3. If the graph exists and files were **added or changed** → skill **`graphify`** (`/graphify . --update`). **Do not** use `./scripts/setup-graphify.sh --rebuild` for incremental adds — `--rebuild` is **start from scratch** only.
-4. Load the **specific** skill the graph points to (`sage-waggle`, `jetson-llm-serve`, `hf-cli`, …).
-5. Use Sage / HF MCP for live data; Graphify indexes **this profile’s** skills and docs only.
+2. **Always use `.venv-graphify`.** Prefer `$PROFILE/.venv-graphify/bin/graphify` and `$PROFILE/.venv-graphify/bin/python`. Do **not** start with `which graphify` / `uv tool` / system `pip` — that hangs or misses the camp install. `cd` to the profile root first (CWD is often `$HOME`).
+3. If the graph is **missing** → **initial setup only:** run `scripts/setup-graphify.sh` (prefer `graphify-baseline.tar.gz`). That script is not the ongoing update path.
+4. If the graph exists and files were **added or changed** → skill **`graphify`** (`/graphify . --update`) via the venv. **Do not** use `./scripts/setup-graphify.sh --rebuild` for incremental adds — `--rebuild` is **start from scratch** only.
+5. Load the **specific** skill the graph points to (`sage-waggle`, `jetson-llm-serve`, `hf-cli`, …).
+6. Use Sage / HF MCP for live data; Graphify indexes **this profile’s** skills and docs only.
 
 Complementary routers: `nvidia-skill-finder`, `huggingface-skills-index.md`, `nvidia-skills-index.md` — still prefer the graph first when unsure.
 
@@ -57,13 +58,15 @@ chmod +x scripts/setup-graphify.sh
 
 ### Updating an existing graph (new/changed skills or docs)
 
-**Use the graphify skill**, not the setup script:
+**Use the graphify skill + `.venv-graphify`**, not the setup script and not `which graphify`:
 
 ```bash
-cd ~/.hermes/profiles/sage
-source .venv-graphify/bin/activate
+cd ~/.hermes/profiles/sage   # or /root/summer-camp-2026/hermes-profile
+export PATH="$PWD/.venv-graphify/bin:$PATH"
 # Prefer: /graphify . --update inside Hermes (loads skill graphify)
-graphify update .    # CLI equivalent when following the skill
+.venv-graphify/bin/graphify update .
+# or:
+.venv-graphify/bin/python -c "…"   # when following skill bash blocks
 ```
 
 The script:

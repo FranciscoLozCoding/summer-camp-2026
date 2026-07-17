@@ -52,13 +52,47 @@ bash "$SETUP" --status
 5. Do **not** use a relative `bash scripts/setup-graphify.sh` unless you have already `cd`'d into the profile root.
 6. **`--rebuild` is start-from-scratch only** (replace the whole graph). If files were added and a graph already exists, use skill **`graphify`** (`--update`) — never `--rebuild` for that.
 
+### Always use the Graphify venv
+
+This profile ships Graphify into **`.venv-graphify/`** at the **profile root** (created by `setup-graphify.sh`). Hermes CWD is often `$HOME`, so `which graphify` usually fails or finds the wrong install — **do not** start with a long `which`/`uv tool` hunt.
+
+**Before any `graphify` CLI or `python -c "import graphify"` step:**
+
+1. `cd` to the profile root (where `graphify-out/` and `.venv-graphify/` live), or use absolute paths.
+2. Prefer the venv binaries:
+
+```bash
+# Resolve profile root (same locations as setup script):
+PROFILE=""
+for d in \
+  "${HERMES_HOME:-$HOME/.hermes}/profiles/sage" \
+  "$HOME/.hermes/profiles/sage" \
+  "$HOME/summer-camp-2026/hermes-profile" \
+  /root/summer-camp-2026/hermes-profile
+do
+  if [ -x "$d/.venv-graphify/bin/graphify" ]; then PROFILE="$d"; break; fi
+done
+[ -n "$PROFILE" ] || { echo "ERROR: .venv-graphify not found — run scripts/setup-graphify.sh once"; exit 1; }
+cd "$PROFILE"
+export PATH="$PROFILE/.venv-graphify/bin:$PATH"
+GRAPHIFY="$PROFILE/.venv-graphify/bin/graphify"
+PYTHON="$PROFILE/.venv-graphify/bin/python"
+# Persist for skill steps that read graphify-out/.graphify_python:
+mkdir -p graphify-out
+"$PYTHON" -c "import sys; open('graphify-out/.graphify_python','w',encoding='utf-8').write(sys.executable)"
+```
+
+Use `"$GRAPHIFY" query …` / `"$GRAPHIFY" update .` or `"$PYTHON" -c "…"` — not system `python3` and not a blocking `which graphify` loop.
+
+If `.venv-graphify` is missing, run **initial** `scripts/setup-graphify.sh` once, then retry.
+
 ### After the graph exists
 
 - Dirty `graphify-out/` files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip if the task is about stale/incorrect graph output, or the user explicitly says not to use it.
 - If `graphify-out/wiki/index.md` exists, use it for broad navigation instead of raw source browsing.
 - Read `graphify-out/GRAPH_REPORT.md` only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying profile skill/doc files in this session, follow skill **`graphify`** and run an **update** from the **profile root** (not `setup-graphify.sh --rebuild`).
+- After modifying profile skill/doc files in this session, follow skill **`graphify`** and run an **update** from the **profile root** via **`.venv-graphify`** (not `setup-graphify.sh --rebuild`).
 - Then load the **named** skill (`/skill sage-waggle`, `/skill jetson-llm-serve`, …) and follow it. Graphify finds; the skill teaches procedures.
 - Still use Sage MCP for live nodes/data/jobs; Graphify does not replace MCP.
 
-Camp setup: `references/graphify-guide.md` (in `sage-waggle`) and `scripts/setup-graphify.sh` (initial only). Ongoing: skill **`graphify`**.
+Camp setup: `references/graphify-guide.md` (in `sage-waggle`) and `scripts/setup-graphify.sh` (initial only). Ongoing: skill **`graphify`** + **`.venv-graphify`**.
