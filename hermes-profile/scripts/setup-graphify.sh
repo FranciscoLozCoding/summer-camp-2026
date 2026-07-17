@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
-# Required camp setup: venv + pip install Graphify + build skills/docs graph.
+# Required camp setup: install Graphify CLI + ensure graphify-out/graph.json.
 #
-# Uses the same LLM as Hermes when possible: reads profile config.yaml (+ .env)
-# for model / base_url / API key, then picks Graphify --backend ollama|openai.
+# Fast path (default): unpack graphify-baseline.tar.gz (prebuilt camp graph).
+# Slow path: LLM extract (--rebuild / --foreground), Hermes-aligned backend.
 #
-# DEFAULT: runs the long extract in the BACKGROUND (nohup) and returns immediately.
-#   ./scripts/setup-graphify.sh              # start background job
-#   ./scripts/setup-graphify.sh --status     # pid / log / graph ready?
-#   ./scripts/setup-graphify.sh --stop       # kill background job
-#   ./scripts/setup-graphify.sh --foreground # block until done (manual / CI)
+#   ./scripts/setup-graphify.sh                 # baseline unpack or background extract
+#   ./scripts/setup-graphify.sh --from-baseline  # force unpack tarball
+#   ./scripts/setup-graphify.sh --pack-baseline  # refresh tarball from graphify-out/
+#   ./scripts/setup-graphify.sh --status
+#   ./scripts/setup-graphify.sh --stop
+#   ./scripts/setup-graphify.sh --rebuild        # full LLM extract (long)
 #
-# Why background by default: semantic extract over ~1.8K markdown files takes
-# many minutes on Thor and will timeout Hermes/agent foreground tools.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
@@ -136,41 +135,146 @@ _is_ollama_url() {
   return 1
 }
 
+BASELINE="${GRAPHIFY_BASELINE:-$ROOT/graphify-baseline.tar.gz}"
+
+_ensure_venv() {
+  # Install graphify CLI into .venv-graphify so query/path/explain work after baseline unpack.
+  PYTHON="${PYTHON:-python3}"
+  if ! command -v "$PYTHON" >/dev/null 2>&1; then
+    echo "ERROR: $PYTHON not found. Install Python 3.10+ and retry." >&2
+    exit 1
+  fi
+  VENV="${GRAPHIFY_VENV:-$ROOT/.venv-graphify}"
+  if [ ! -x "$VENV/bin/python" ]; then
+    echo "==> Creating venv at $VENV ..."
+    "$PYTHON" -m venv "$VENV"
+  fi
+  # shellcheck disable=SC1091
+  source "$VENV/bin/activate"
+  PY="$VENV/bin/python"
+  PIP="$VENV/bin/pip"
+  GRAPHIFY="$VENV/bin/graphify"
+  echo "==> Ensuring graphifyy[ollama] in $VENV ..."
+  "$PIP" install --upgrade pip >/dev/null
+  "$PIP" install --upgrade 'graphifyy[ollama]'
+  if [ ! -x "$GRAPHIFY" ]; then
+    echo "ERROR: $GRAPHIFY missing after pip install." >&2
+    exit 1
+  fi
+  mkdir -p graphify-out
+  "$PY" -c 'import sys; print(sys.executable)' > graphify-out/.graphify_python
+}
+
+_unpack_baseline() {
+  if [ ! -f "$BASELINE" ]; then
+    echo "ERROR: baseline not found: $BASELINE" >&2
+    exit 1
+  fi
+  echo "==> Unpacking camp baseline: $BASELINE"
+  # Replace runtime graphify-out/ with archive contents (paths inside are graphify-out/...)
+  rm -rf "$ROOT/graphify-out"
+  tar -xzf "$BASELINE" -C "$ROOT"
+  if [ ! -f "$GRAPH_JSON" ]; then
+    echo "ERROR: unpack did not produce $GRAPH_JSON — is the archive layout wrong?" >&2
+    echo "  Expected members like graphify-out/graph.json" >&2
+    exit 1
+  fi
+  rm -f "$PIDFILE"
+  echo "==> Baseline ready: $GRAPH_JSON ($(wc -c <"$GRAPH_JSON" | tr -d ' ') bytes)"
+}
+
+_pack_baseline() {
+  if [ ! -f "$GRAPH_JSON" ]; then
+    echo "ERROR: no $GRAPH_JSON to pack. Run extract or --from-baseline first." >&2
+    exit 1
+  fi
+  local tmp out
+  tmp="$(mktemp -d)"
+  out="$BASELINE"
+  echo "==> Packing $ROOT/graphify-out → $out (excluding setup.log / setup.pid / .graphify_python)"
+  mkdir -p "$tmp/graphify-out"
+  # Portable copy (no rsync required)
+  tar -C "$ROOT/graphify-out" \
+    --exclude='setup.log' \
+    --exclude='setup.pid' \
+    --exclude='.graphify_python' \
+    -cf - . | tar -C "$tmp/graphify-out" -xf -
+  tar -czf "$out" -C "$tmp" graphify-out
+  rm -rf "$tmp"
+  ls -lh "$out"
+  echo "==> Done. Commit $out so other users can ./scripts/setup-graphify.sh (fast path)."
+}
+
 case "$_cmd" in
   --status|-s) _status; exit 0 ;;
   --stop) _stop; exit 0 ;;
+  --from-baseline|--baseline)
+    _unpack_baseline
+    _ensure_venv
+    echo "==> [$(date -Is)] Graph ready from baseline (no LLM extract)."
+    echo "    Query: $GRAPHIFY query \"...\" --graph graphify-out/graph.json"
+    exit 0
+    ;;
+  --pack-baseline)
+    _pack_baseline
+    exit 0
+    ;;
   --help|-h)
     cat <<'EOF'
-Usage: setup-graphify.sh [--status|--stop|--foreground]
+Usage: setup-graphify.sh [--status|--stop|--from-baseline|--pack-baseline|--foreground|--rebuild]
 
-  (default)     Start extract in BACKGROUND; print pid/log and exit 0 quickly.
-  --foreground  Run install+extract in this terminal (blocks for a long time).
-  --status      Show running job / graph readiness / recent log.
-  --stop        Kill background setup job.
+  (default)          If graphify-out/graph.json exists → done.
+                     Else if graphify-baseline.tar.gz exists → unpack it (fast).
+                     Else start a BACKGROUND LLM extract.
+  --from-baseline    Unpack graphify-baseline.tar.gz (overwrite graphify-out/).
+  --pack-baseline    Rebuild graphify-baseline.tar.gz from current graphify-out/.
+  --foreground       Full LLM extract in this terminal (blocks a long time).
+  --rebuild          Same as --foreground (ignore baseline; rebuild from scratch).
+  --status           Show running job / graph readiness / recent log.
+  --stop             Kill background setup job.
 
-LLM selection (Hermes-aligned):
+LLM selection (Hermes-aligned, extract only):
   Reads profile config.yaml model.default / model.base_url (+ custom_providers)
   and profile .env for API keys. Ollama URLs → --backend ollama; otherwise
   OpenAI-compatible (NRP, NVIDIA Build, …) → --backend openai.
 
-Env overrides (always win over config.yaml):
+Env overrides:
   GRAPHIFY_BACKEND=ollama|openai
   OLLAMA_BASE_URL / OLLAMA_MODEL / OLLAMA_API_KEY
   OPENAI_BASE_URL / OPENAI_MODEL / OPENAI_API_KEY
   GRAPHIFY_TOKEN_BUDGET (default 25000), GRAPHIFY_MAX_CONCURRENCY (default 1),
   GRAPHIFY_API_TIMEOUT (default 1800s), GRAPHIFY_FOREGROUND=1, GRAPHIFY_VENV,
-  GRAPHIFY_OLLAMA_NUM_CTX
+  GRAPHIFY_OLLAMA_NUM_CTX, GRAPHIFY_BASELINE, GRAPHIFY_FORCE_EXTRACT=1
 EOF
     exit 0
     ;;
 esac
 
-# ── Default: background the long job ─────────────────────────────────────────
+# ── Fast paths before any long extract ───────────────────────────────────────
+# Full LLM extract only when explicitly requested.
 _want_fg=0
-if [ "$_cmd" = "--foreground" ] || [ "${GRAPHIFY_FOREGROUND:-}" = "1" ]; then
+if [ "$_cmd" = "--foreground" ] || [ "$_cmd" = "--rebuild" ] || [ "${GRAPHIFY_FOREGROUND:-}" = "1" ]; then
   _want_fg=1
 fi
 
+if [ "$_want_fg" -eq 0 ] && [ "${GRAPHIFY_FORCE_EXTRACT:-}" != "1" ]; then
+  if [ -f "$GRAPH_JSON" ]; then
+    echo "Graph already ready: $GRAPH_JSON"
+    echo "  Re-unpack baseline: $SELF --from-baseline"
+    echo "  Full rebuild:       $SELF --rebuild"
+    exit 0
+  fi
+  if [ -f "$BASELINE" ]; then
+    echo "==> No graph.json — installing camp baseline (skips multi-hour extract)."
+    _unpack_baseline
+    _ensure_venv
+    echo "==> [$(date -Is)] Graph ready from baseline."
+    echo "    Query: $GRAPHIFY query \"...\" --graph graphify-out/graph.json"
+    exit 0
+  fi
+fi
+
+# ── No baseline (or --rebuild/--foreground): background unless foreground ────
 if [ "$_want_fg" -eq 0 ]; then
   if [ -f "$PIDFILE" ]; then
     _old="$(cat "$PIDFILE" 2>/dev/null || true)"
@@ -185,11 +289,13 @@ if [ "$_want_fg" -eq 0 ]; then
 
   cat <<EOF
 ========================================================================
-Graphify setup takes a LONG time on Thor (often 30+ minutes; can be hours).
+No graphify-baseline.tar.gz (or --rebuild / GRAPHIFY_FORCE_EXTRACT requested).
+Full extract takes a LONG time on Thor (often 30+ minutes; can be hours).
 Starting in the BACKGROUND so agent/tool timeouts are not hit.
   Log:  $LOG
   When ready: test -f graphify-out/graph.json
   Check: $SELF --status
+  Tip: ship graphify-baseline.tar.gz so students use the fast path.
 ========================================================================
 EOF
 
@@ -230,33 +336,7 @@ elif [ -f "$HOME/.hermes/.env" ]; then
   _load_dotenv "$HOME/.hermes/.env"
 fi
 
-PYTHON="${PYTHON:-python3}"
-if ! command -v "$PYTHON" >/dev/null 2>&1; then
-  echo "ERROR: $PYTHON not found. Install Python 3.10+ and retry." >&2
-  exit 1
-fi
-
-VENV="${GRAPHIFY_VENV:-$ROOT/.venv-graphify}"
-if [ ! -x "$VENV/bin/python" ]; then
-  echo "==> Creating venv at $VENV (avoids externally-managed-environment / PEP 668)..."
-  "$PYTHON" -m venv "$VENV"
-fi
-# shellcheck disable=SC1091
-source "$VENV/bin/activate"
-PY="$VENV/bin/python"
-PIP="$VENV/bin/pip"
-GRAPHIFY="$VENV/bin/graphify"
-
-echo "==> Installing graphifyy[ollama] into $VENV ..."
-"$PIP" install --upgrade pip
-"$PIP" install --upgrade 'graphifyy[ollama]'
-
-if [ ! -x "$GRAPHIFY" ]; then
-  echo "ERROR: $GRAPHIFY missing after pip install." >&2
-  exit 1
-fi
-
-"$PY" -c 'import sys; print(sys.executable)' > graphify-out/.graphify_python
+_ensure_venv
 
 _resolve_hermes_model "$ROOT/config.yaml"
 echo "==> Hermes config: model=${HERMES_MODEL:-?} provider=${HERMES_PROVIDER:-?} name=${HERMES_PROVIDER_NAME:-?} base_url=${HERMES_BASE_URL:-?} key_env=${HERMES_KEY_ENV:-none}"

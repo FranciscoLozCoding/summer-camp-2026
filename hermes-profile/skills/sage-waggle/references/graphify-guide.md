@@ -7,7 +7,8 @@
 | **Upstream** | <https://github.com/Graphify-Labs/graphify> |
 | **Bundled skill** | `skills/graphify/` (Hermes/claw skill bundle) |
 | **Always-on rules** | profile `AGENTS.md` |
-| **Setup script** | `scripts/setup-graphify.sh` (venv + pip + Ollama `/v1`) |
+| **Setup script** | `scripts/setup-graphify.sh` (baseline unpack, or Hermes-aligned extract) |
+| **Camp baseline** | `graphify-baseline.tar.gz` (prebuilt `graphify-out/`; preferred init) |
 | **Corpus** | `skills/` + `docs/` (see `.graphifyignore`) |
 | **PyPI** | `graphifyy` (CLI: `graphify`) |
 | **Venv** | `.venv-graphify/` (created by the setup script) |
@@ -15,7 +16,7 @@
 ## Agent protocol (non-negotiable)
 
 1. If `graphify-out/graph.json` exists → `graphify query` / `path` / `explain` **before** mass-reading skills.
-2. If the graph is missing → run `scripts/setup-graphify.sh` (**background by default** — long Thor job; use `--status` / wait for `graphify-out/graph.json`). Do not block foreground tools on extract.
+2. If the graph is missing → run `scripts/setup-graphify.sh`. Prefer camp **`graphify-baseline.tar.gz`** (seconds). Only fall back to a long LLM extract when the baseline is absent or `--rebuild` is needed.
 3. Load the **specific** skill the graph points to (`sage-waggle`, `jetson-llm-serve`, `hf-cli`, …).
 4. Use Sage / HF MCP for live data; Graphify indexes **this profile’s** skills and docs only.
 
@@ -32,9 +33,8 @@ After `hermes profile install ./hermes-profile --name sage --alias`:
 SETUP="$HOME/.hermes/profiles/sage/scripts/setup-graphify.sh"
 # or: SETUP="$HOME/summer-camp-2026/hermes-profile/scripts/setup-graphify.sh"
 
-bash "$SETUP"           # BACKGROUND by default (returns immediately)
-bash "$SETUP" --status  # pid / log / ready?
-# tail -f "$(dirname "$SETUP")/../graphify-out/setup.log"
+bash "$SETUP"           # unpacks graphify-baseline.tar.gz when present (fast)
+bash "$SETUP" --status  # confirm graph.json
 ```
 
 Manual from profile root:
@@ -43,9 +43,12 @@ Manual from profile root:
 cd ~/.hermes/profiles/sage   # or the cloned hermes-profile/
 
 chmod +x scripts/setup-graphify.sh
-./scripts/setup-graphify.sh          # BACKGROUND by default (returns immediately)
-./scripts/setup-graphify.sh --status # pid / log / ready?
-# tail -f graphify-out/setup.log
+./scripts/setup-graphify.sh              # baseline unpack (default)
+./scripts/setup-graphify.sh --status
+./scripts/setup-graphify.sh --from-baseline  # force re-unpack
+./scripts/setup-graphify.sh --rebuild        # full LLM extract (hours)
+# After a fresh extract, refresh the shipped archive:
+# ./scripts/setup-graphify.sh --pack-baseline
 ```
 
 Foreground only if you intentionally want to watch the whole run:
@@ -56,15 +59,13 @@ Foreground only if you intentionally want to watch the whole run:
 
 The script:
 
-1. **Defaults to background** (`nohup`) — extract often takes 30+ minutes on Thor and will timeout agent tools if run in the foreground
-2. Creates `.venv-graphify` (avoids PEP 668 `externally-managed-environment`)
-3. `pip install 'graphifyy[ollama]'` into that venv
-4. **Follows Hermes model selection** — reads `config.yaml` (`model.default` / `model.base_url` / `custom_providers`) and profile `.env` for keys
-5. Picks Graphify backend: Ollama URL (`:11434`) → `--backend ollama`; otherwise OpenAI-compat (NRP, NVIDIA Build, …) → `--backend openai`
-6. Probes `/v1/models` + `/v1/chat/completions` before a long extract
-7. Writes `graphify-out/setup.log` + `setup.pid`
+1. **Prefers `graphify-baseline.tar.gz`** — unpacks a prebuilt graph in seconds (camp default)
+2. Creates `.venv-graphify` and installs `graphifyy` so `graphify query` works
+3. Only if no baseline (or `--rebuild`) → long LLM extract (background by default)
+4. Extract follows Hermes `config.yaml` model (Ollama or OpenAI-compat like NRP)
+5. `--pack-baseline` rebuilds the shipped tarball after a fresh extract
 
-After `hermes model` (e.g. switch to NRP `gpt-oss`), re-run setup so Graphify uses the same endpoint/model. Overrides: `GRAPHIFY_BACKEND`, `OPENAI_*`, `OLLAMA_*`.
+**Expect:** Full semantic extract over ~1.8K files is slow. Instructors should ship an updated `graphify-baseline.tar.gz` (`--pack-baseline`) after skill/doc changes so students skip extract.
 
 Manual equivalent (Ollama):
 

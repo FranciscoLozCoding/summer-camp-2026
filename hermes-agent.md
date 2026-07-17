@@ -159,7 +159,7 @@ cp ~/.hermes/profiles/sage/.env.EXAMPLE ~/.hermes/profiles/sage/.env
 # Edit .env if needed — add NVIDIA_API_KEY (nvapi-...) for Part 2; leave blank for Thor+Ollama
 
 # Required — Graphify knowledge graph over skills/ + docs/
-# Default is BACKGROUND (long job on Thor). Check with --status.
+# Unpacks graphify-baseline.tar.gz by default (fast). Use --rebuild for full extract.
 cd ~/.hermes/profiles/sage
 chmod +x scripts/setup-graphify.sh
 ./scripts/setup-graphify.sh
@@ -169,7 +169,7 @@ hermes profile info sage
 hermes doctor
 ```
 
-> **Graphify is required.** The profile ships many skills (Sage, Hugging Face, NVIDIA). Hermes must discover the right skill via `graphify-out/` (`AGENTS.md` + skill `graphify`). See [`hermes-profile/skills/sage-waggle/references/graphify-guide.md`](hermes-profile/skills/sage-waggle/references/graphify-guide.md). Hermes CWD is often `$HOME` — use an absolute path to `scripts/setup-graphify.sh`, not a relative one. After `hermes profile update sage`, re-run setup (or `graphify update .` for a light refresh).
+> **Graphify is required.** The profile ships many skills (Sage, Hugging Face, NVIDIA) plus a prebuilt `graphify-baseline.tar.gz`. Hermes must discover the right skill via `graphify-out/` (`AGENTS.md` + skill `graphify`). See [`hermes-profile/skills/sage-waggle/references/graphify-guide.md`](hermes-profile/skills/sage-waggle/references/graphify-guide.md). Hermes CWD is often `$HOME` — use an absolute path to `scripts/setup-graphify.sh`, not a relative one. After `hermes profile update sage`, run `./scripts/setup-graphify.sh --from-baseline` (or `--rebuild` / `graphify update .` after large skill changes).
 
 Launch with `sage` or `hermes -p sage`.
 

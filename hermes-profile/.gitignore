@@ -29,3 +29,8 @@ __pycache__/
 .venv/
 .venv-graphify/
 venv/
+
+# Graphify runtime (rebuild via baseline unpack or setup script)
+graphify-out/
+# Ship compressed camp baseline instead (fast init for students)
+!graphify-baseline.tar.gz

@@ -31,3 +31,4 @@ distribution_owned:
   - distribution.yaml
   - .graphifyignore
   - .gitignore
+  - graphify-baseline.tar.gz
