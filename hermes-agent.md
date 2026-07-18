@@ -159,19 +159,25 @@ hermes profile use sage
 cp ~/.hermes/profiles/sage/.env.EXAMPLE ~/.hermes/profiles/sage/.env
 # Edit .env if needed — add NVIDIA_API_KEY (nvapi-...) for Part 2; leave blank for Thor+Ollama
 
-# Required — initial Graphify setup only (baseline unpack = fast).
-# After graph.json exists: use skill `graphify` for query/--update (not this script).
-# --rebuild = start from scratch only.
+# Required — Graphify: venv + optional baseline tarball; then skill `/graphify`
 cd ~/.hermes/profiles/sage
-chmod +x scripts/setup-graphify.sh
-./scripts/setup-graphify.sh
-./scripts/setup-graphify.sh --status
+if [ ! -x .venv-graphify/bin/python ]; then
+  python3 -m venv .venv-graphify
+  .venv-graphify/bin/pip install -U pip
+  .venv-graphify/bin/pip install -U 'graphifyy[ollama]'
+fi
+if [ ! -f graphify-out/graph.json ] && [ -f graphify-baseline.tar.gz ]; then
+  tar -xzf graphify-baseline.tar.gz
+fi
+test -f graphify-out/graph.json && echo "graph ok"
+# If still missing: in Hermes run  /graphify ~/.hermes/profiles/sage
+# After skill/doc changes:         /graphify ~/.hermes/profiles/sage --update
 
 hermes profile info sage
 hermes doctor
 ```
 
-> **Graphify is required.** The profile ships many skills (Sage, Hugging Face, NVIDIA) plus a prebuilt `graphify-baseline.tar.gz`. Hermes must discover the right skill via `graphify-out/` (`AGENTS.md` + skill `graphify`). See [`hermes-profile/skills/sage-waggle/references/graphify-guide.md`](hermes-profile/skills/sage-waggle/references/graphify-guide.md). Hermes CWD is often `$HOME` — use an absolute path to `scripts/setup-graphify.sh` for **initial setup only**. After the graph exists, use skill **`graphify`** (`query` / `--update`). Do not use `--rebuild` to add files to an existing graph — that is start-from-scratch only.
+> **Graphify is required.** The profile ships many skills (Sage, Hugging Face, NVIDIA) plus a prebuilt `graphify-baseline.tar.gz`. Hermes must discover the right skill via `graphify-out/` (`AGENTS.md` + skill `graphify`). See [`hermes-profile/skills/sage-waggle/references/graphify-guide.md`](hermes-profile/skills/sage-waggle/references/graphify-guide.md). Prefer unpacking the tarball; otherwise `/graphify <absolute-path-to-profile>`. Always use **`.venv-graphify`**. For local Ollama extracts: `OLLAMA_BASE_URL` must end with `/v1`, leave `GRAPHIFY_OLLAMA_NUM_CTX` unset. After the graph exists, use skill **`graphify`** (`query` / `--update`) — not a full rebuild for incremental adds.
 
 Launch with `sage` or `hermes -p sage`.
 
@@ -924,26 +930,19 @@ A practical guide for using context, compute, and provider quotas responsibly du
 
 # Updating The Knowledge Graph
 
-After adding/changing skills or docs **with a graph already built** → use skill **`graphify`**'s update flow using **`.venv-graphify`**. 
->NOTE: **`setup-graphify.sh --rebuild` is start-from-scratch only**, not for incremental adds.
+After adding/changing skills or docs **with a graph already built** → use skill **`graphify`** with **`.venv-graphify`** (create the venv if missing). Prefer the absolute **profile** path (Hermes CWD is often `$HOME`). Full `/graphify <profile>` again is start-from-scratch only — use `--update` for incremental adds.
 
-Run the following skill to update the knowledge graph using your agent:
-
-```bash
-/graphify summer-camp-2026/hermes-profile/graphify-out --update
+```text
+/graphify /path/to/hermes-profile --update
 ```
 
-This will update the knowledge graph using your agent. To push the knowledge graph to the remote repository compressed into a tarball, run the following command:
+Examples: `$HOME/.hermes/profiles/sage` or `$HOME/summer-camp-2026/hermes-profile`.
+
+To refresh the shipped camp baseline after a rebuild, from the profile root:
 
 ```bash
-$ tar -czvf graphify-baseline.tar.gz graphify-out
+tar -czf graphify-baseline.tar.gz graphify-out
+git add graphify-baseline.tar.gz
+git commit -m "Update knowledge graph baseline"
+git push
 ```
-
-This will create a tarball of the knowledge graph. You can then push this tarball to the remote repository using the following command:
-
-```bash
-$ git add graphify-baseline.tar.gz
-$ git commit -m "Update knowledge graph"
-$ git push
-```
----

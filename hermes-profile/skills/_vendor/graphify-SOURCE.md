@@ -11,4 +11,4 @@ Skill bundle + `AGENTS.md` rules copied from [Graphify-Labs/graphify](https://gi
 | **Hermes skill source** | `graphify/skill-claw.md` + `graphify/skills/claw/` |
 | **Always-on rules** | `graphify/always_on/agents-md.md` → profile `AGENTS.md` |
 
-CLI still installed separately: `python3 -m pip install --user --upgrade 'graphifyy[ollama]'` (see `scripts/setup-graphify.sh`).
+CLI: create/use profile `.venv-graphify` and `pip install 'graphifyy[ollama]'`, then `/graphify <path-to-profile>` (see `AGENTS.md` + `sage-waggle/references/graphify-guide.md`). Prefer unpacking `graphify-baseline.tar.gz` when present.

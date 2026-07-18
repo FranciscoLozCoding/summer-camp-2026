@@ -27,7 +27,6 @@ distribution_owned:
   - mcp.json
   - skills/
   - docs/
-  - scripts/
   - distribution.yaml
   - .graphifyignore
   - .gitignore
