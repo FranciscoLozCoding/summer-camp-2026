@@ -175,10 +175,10 @@ custom_providers:
   - name: nrp
     base_url: https://ellm.nrp-nautilus.io/v1
     key_env: NRP_LLM_API_KEY
-    model: gpt-oss
+    model: minimax-m2
     models:
-      gpt-oss:
-        context_length: 131072
+      minimax-m2:
+        context_length: 204800
 
 # ── Security ──────────────────────────────────────────────────────────
 # Secret redaction is ON by default — strings that look like API keys,

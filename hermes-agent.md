@@ -8,7 +8,7 @@ Every participant has their **own Linux account** on the Thor. Hermes installs i
 | ----- | -------- |
 | [Part 1 — Thor + Ollama](#part-1-thor--ollama) | Local GPU inference via Ollama on your assigned Thor |
 | [Part 2 — NVIDIA Hosted APIs](#part-2-nvidia-hosted-apis) | Cloud inference via NVIDIA Build (no Ollama needed) |
-| [Part 2B — NRP Managed LLMs](#part-2b-nrp-managed-llms) | Cloud inference via NRP Nautilus (`gpt-oss` default) |
+| [Part 2B — NRP Managed LLMs](#part-2b-nrp-managed-llms) | Cloud inference via NRP Nautilus (`minimax-m2` default) |
 | [Part 3 — Transferring the brain](#part-3-transferring-the-brain) | Share agent config or move to a new machine via profile distribution |
 | [Comparison](#inference-options-compared) | Choosing between inference approaches |
 | [Switching between approaches](#switching-between-approaches) | Swap providers without reinstalling |
@@ -607,7 +607,7 @@ All inference requests go to NVIDIA's hosted infrastructure from the Thor.
 
 # Part 2B: NRP Managed LLMs
 
-Hermes runs on the Thor and talks to **[NRP Managed LLMs](https://nrp.ai/documentation/userdocs/ai/llm-managed/)** over HTTPS via the Envoy AI Gateway. No Ollama required. The camp profile ships **`gpt-oss`** ([openai/gpt-oss-120b](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/#gpt-oss)) as the default NRP model — strong tool calling, reasoning, and 128K context.
+Hermes runs on the Thor and talks to **[NRP Managed LLMs](https://nrp.ai/documentation/userdocs/ai/llm-managed/)** over HTTPS via the Envoy AI Gateway. No Ollama required. The camp profile ships **`minimax-m2`** ([NRP model card](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/#minimax-m2)) as the default NRP model — strong agentic tool calling and ~200K context.
 
 ## At a glance
 
@@ -650,7 +650,7 @@ NRP_LLM_API_KEY=<your-token>
 curl -H "Authorization: Bearer $NRP_LLM_API_KEY" https://ellm.nrp-nautilus.io/v1/models
 ```
 
-You should see `gpt-oss` and other active models in the response.
+You should see `minimax-m2` and other active models in the response.
 
 ---
 
@@ -665,11 +665,11 @@ hermes model
 | Provider | **`nrp`** (custom provider) |
 | API Key env | `NRP_LLM_API_KEY` (from `.env`) |
 | Base URL | `https://ellm.nrp-nautilus.io/v1` (pre-configured) |
-| Model | **`gpt-oss`** |
+| Model | **`minimax-m2`** |
 
-Or edit `~/.hermes/profiles/sage/config.yaml` directly — the `nrp` provider and `gpt-oss` model are already defined under `custom_providers`.
+Or edit `~/.hermes/profiles/sage/config.yaml` directly — the `nrp` provider and `minimax-m2` model are already defined under `custom_providers`.
 
-> **Why gpt-oss?** LTS-friendly, strong tool calling, 128K context — a good general-purpose camp default on NRP. Browse the [model matrix](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/) to pick others (`qwen3`, `gemma`, `kimi`, etc.) via `hermes model`.
+> **Why minimax-m2?** Strong agentic coding / tool use and ~200K context on NRP. Browse the [model matrix](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/) to pick others (`gpt-oss`, `qwen3`, `gemma`, `kimi`, etc.) via `hermes model`. Note: NRP currently lists `minimax-m2` as **evaluating** — availability may change.
 
 ---
 
@@ -690,7 +690,7 @@ All inference requests go to NRP's managed infrastructure from the Thor.
 
 1. Confirm your group has the LLM flag — without it, the endpoint returns auth errors.
 2. Token must be passed as `Authorization: Bearer <token>`.
-3. Model ID is **`gpt-oss`** (not `openai/gpt-oss-120b`) — use the short API alias from `/v1/models`.
+3. Model ID is **`minimax-m2`** — use the short API alias from `/v1/models` (not a HuggingFace path).
 4. Review the [Fair Use Policy](https://nrp.ai/documentation/userdocs/ai/llm-managed/fair-use-policy/) — per-model concurrency limits apply.
 5. Confirm the token is in **your** `.env`, not another user's.
 
@@ -847,14 +847,14 @@ hermes doctor
 | **Where inference runs** | Thor (Ollama, local GPU) | NRP Nautilus (cloud) | NVIDIA Build (cloud) |
 | **Endpoint** | `http://127.0.0.1:11434/v1` | `https://ellm.nrp-nautilus.io/v1` | `https://integrate.api.nvidia.com/v1` |
 | **API key** | Not required | `NRP_LLM_API_KEY` (Bearer token) | `NVIDIA_API_KEY` (`nvapi-...`) |
-| **Default camp model** | `gemma4:31b` | `gpt-oss` | (user picks from catalog) |
+| **Default camp model** | `gemma4:31b` | `minimax-m2` | (user picks from catalog) |
 | **Internet** | Only for SSH | Always (on Thor) | Always (on Thor) |
 | **Models** | Any Ollama model on the Thor | NRP catalog ([model matrix](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/)) | NVIDIA catalog only |
 | **Cost** | Shared Thor GPU | NRP fair-use policy | NVIDIA Build credits |
 
 **Choose Thor + Ollama** when you want full model control on local GPU hardware.
 
-**Choose NRP** when you want NSF-hosted cloud inference with open-weights models (e.g. `gpt-oss`, `qwen3`, `gemma`).
+**Choose NRP** when you want NSF-hosted cloud inference with open-weights models (e.g. `minimax-m2`, `gpt-oss`, `qwen3`, `gemma`).
 
 **Choose NVIDIA** when you want NVIDIA Build catalog models and credits.
 
@@ -871,7 +871,7 @@ hermes model
 Select the appropriate provider:
 
 - **`local-sage-thor`** — Thor + Ollama (`gemma4:31b`)
-- **`nrp`** — NRP Managed LLMs (`gpt-oss` default)
+- **`nrp`** — NRP Managed LLMs (`minimax-m2` default)
 - **NVIDIA NIM** — NVIDIA Build hosted APIs
 
 If using the camp profile, you can also edit `~/.hermes/profiles/sage/.env` and `config.yaml` directly.

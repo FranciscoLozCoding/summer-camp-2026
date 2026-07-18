@@ -79,7 +79,7 @@ Provider conditions can change. Treat `/usage`, the provider dashboard, and link
 | **`nrp`** | Shared, non-profit NRP-managed inference under its fair-use policy. | Per-model concurrency limits; requests using at least 35% of model context are limited to one concurrent request per user. Automated work should back off and reduce concurrency when latency rises. | Reproducible research, stronger models, longer or specialized tasks. |
 | **NVIDIA hosted NIM API** | Developer Program endpoints are available for prototyping, research, development, and testing; availability and limits are service/model dependent. | Trial/developer access is not a production SLA. Check the current account/model page rather than assuming a fixed credit amount. | Trying specialized hosted models or comparing model behavior. |
 
-For the NRP model catalog as verified on the date above, `gpt-oss` is positioned as a reproducible general-purpose/LTS option. The catalog changes, so do not hard-code one model as permanently “best.”
+For the NRP model catalog as verified on the date above, camp default is `minimax-m2` (strong agentic coding / ~200K context; NRP may list it as evaluating). `gpt-oss` remains a reproducible general-purpose/LTS option. The catalog changes, so do not hard-code one model as permanently “best.”
 
 ### A simple provider decision rule
 

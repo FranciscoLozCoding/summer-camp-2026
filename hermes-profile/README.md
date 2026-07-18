@@ -11,7 +11,7 @@ hermes-profile/
 ├── distribution.yaml    # manifest (name: sage, version 1.0.7)
 ├── SOUL.md              # agent personality + Graphify-first discovery rules
 ├── AGENTS.md            # always-on: query graphify-out/ before grepping skills
-├── config.yaml          # Ollama default + NRP provider pre-wired (gpt-oss)
+├── config.yaml          # Ollama default + NRP provider pre-wired (minimax-m2)
 ├── mcp.json             # Sage + Milvus SDK helper enabled; GitHub + Hugging Face MCP listed (disabled until tokens)
 ├── graphify-baseline.tar.gz  # Prebuilt graph — unpack if present (skips multi-hour extract)
 ├── skills/graphify/     # Required Graphify skill (/graphify <profile>)
@@ -76,7 +76,7 @@ Launch with `sage` or `hermes -p sage`. The agent follows `AGENTS.md`: **query G
 | Variable | When needed |
 | --- | --- |
 | `NVIDIA_API_KEY` | Part 2 — NVIDIA Build inference ([hermes-agent.md](../hermes-agent.md#part-2-nvidia-hosted-apis)) |
-| `NRP_LLM_API_KEY` | Part 2B — NRP Managed LLMs (`gpt-oss`) ([hermes-agent.md](../hermes-agent.md#part-2b-nrp-managed-llms)) |
+| `NRP_LLM_API_KEY` | Part 2B — NRP Managed LLMs (`minimax-m2`) ([hermes-agent.md](../hermes-agent.md#part-2b-nrp-managed-llms)) |
 | `SAGE_PORTAL_TOKEN` | Sage MCP job-submission tools only — read-only MCP works without it |
 | `GITHUB_MCP_PAT` / `GITHUB_PERSONAL_ACCESS_TOKEN` | Optional GitHub MCP (`https://api.githubcopilot.com/mcp/`) — see `skills/sage-waggle/references/github-mcp-server.md` |
 | `HF_TOKEN` / `HUGGINGFACE_HUB_TOKEN` | Optional Hugging Face MCP (`https://huggingface.co/mcp`) — see `skills/sage-waggle/references/huggingface-mcp-server.md` |
