@@ -1,0 +1,30 @@
+# Graphify ignores for the camp Hermes profile (skills/ + docs/).
+# Same syntax as .gitignore. Merged with .gitignore — this only excludes more.
+# Upstream: https://github.com/Graphify-Labs/graphify
+
+# Generated graph artifacts (rebuild with `graphify extract`)
+graphify-out/
+**/graphify-out/
+
+# Vendor license blobs (not useful as graph nodes)
+skills/_vendor/**
+
+# Eval / fixture noise (NVIDIA skills ship lots of these)
+**/evals/**
+**/eval/**
+**/__pycache__/**
+**/*.pyc
+**/.pytest_cache/**
+
+# Large / low-signal demo assets inside skills
+**/examples/**/datasets/**
+**/examples/**/*.pt
+**/examples/**/*.onnx
+**/examples/**/*.engine
+**/*.mp4
+**/*.mkv
+**/*.wav
+**/*.flac
+
+# Keep focusing the graph on skill instructions + references + camp docs
+# (everything else under skills/ and docs/ is still included unless matched above)

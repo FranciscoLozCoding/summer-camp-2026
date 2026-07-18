@@ -1,6 +1,6 @@
 name: sage
-version: 1.0.2
-description: "Sage Grande Summer Camp 2026 agent — edge computing, Waggle plugins, Thor + Ollama"
+version: 1.0.7
+description: "Sage Grande Summer Camp 2026 agent — edge computing, Waggle plugins, Thor + Ollama; Graphify-required skills/docs discovery + HF/NVIDIA skills"
 hermes_requires: ">=0.12.0"
 author: "Sage Grande / UIC EVL"
 license: "MIT"
@@ -14,10 +14,20 @@ env_requires:
   - name: SAGE_PORTAL_TOKEN
     description: "Sage portal Bearer token — only for MCP job-submission tools"
     required: false
+  - name: GITHUB_MCP_PAT
+    description: "GitHub Personal Access Token (Bearer) — only if enabling GitHub MCP at https://api.githubcopilot.com/mcp/"
+    required: false
+  - name: HF_TOKEN
+    description: "Hugging Face access token (Bearer) — only if enabling Hugging Face MCP at https://huggingface.co/mcp"
+    required: false
 distribution_owned:
   - SOUL.md
+  - AGENTS.md
   - config.yaml
   - mcp.json
   - skills/
   - docs/
   - distribution.yaml
+  - .graphifyignore
+  - .gitignore
+  - graphify-baseline.tar.gz

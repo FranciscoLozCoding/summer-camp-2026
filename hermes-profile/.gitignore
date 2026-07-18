@@ -27,4 +27,10 @@ backups/
 __pycache__/
 *.pyc
 .venv/
+.venv-graphify/
 venv/
+
+# Graphify runtime (unpack graphify-baseline.tar.gz or /graphify <profile>)
+graphify-out/
+# Ship compressed camp baseline instead (fast init for students)
+!graphify-baseline.tar.gz

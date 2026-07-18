@@ -17,7 +17,7 @@ globs: ["*sage*", "*waggle*", "*plugin*sage*", "*beehive*"]
 
 ## Architecture Overview
 
-1. **Edge Nodes** — ARM64/x86; WES/k3s. Refs:`node-ssh-access-and-gpsd-probe`,`node-identity-and-upload-contract`,`pywaggle2-nodeinfo-gps-design`,`pluginctl-sideload-and-node-build`,`image-metadata-naming-and-eventlog-linking`,`storage-upload-health-verification`,`thor-arm64-deploy-pipeline`,`cloud-trigger-watchers`,`scheduling-continuous-vs-oneshot-and-gpu-contention`,`local-cache-ring-buffer`,`wes-node-service-daemonset-sideload`,`continuous-producer-patterns`,`plugin-design-doc-workflow`,`n
+1. **Edge Nodes** — ARM64/x86; WES/k3s. Prefer honesty: real VSNs/names only (`references/data-query-first-report-and-history.md`, `references/data-viz-and-honesty.md`). Key refs: `references/stack-architecture-map.md`, `references/pywaggle2-producer-consumer-architecture.md`, `references/frame-anchored-batch-consumers-and-watchers.md`, `references/frame-anchored-vs-window-pollers.md`, `references/node-ssh-access-and-gpsd-probe.md`, `references/node-identity-and-upload-contract.md`, `references/pywaggle2-nodeinfo-gps-design.md`, `references/wes-pod-config-and-manifest-exposure.md`, `references/pluginctl-sideload-and-node-build.md`, `references/node-sideload-test-and-restore.md`, `references/audio-plugin-multinode-testing.md`, `references/storage-upload-health-verification.md`, `references/ci-handoff-doc-discipline.md`, `references/thor-arm64-deploy-pipeline.md`, `references/scheduling-continuous-vs-oneshot-and-gpu-contention.md`, `references/producer-consumer-gpu-and-shared-mounts.md`.
 2. **Beehive (Cloud)** — Receives data uploads, stores in time-series DB + object store. Runs RabbitMQ message bus.
 3. **Beekeeper** — Node identity, registration, provisioning, reverse SSH tunnels for management.
 
@@ -25,12 +25,18 @@ globs: ["*sage*", "*waggle*", "*plugin*sage*", "*beehive*"]
 
 | API | Endpoint | Auth | Notes |
 |-----|----------|------|-------|
-| Data query | `POST https://data.sagecontinuum.org/api/v1/query` | None (public) | JSON body: `{"start":"-1h","tail":5}`, returns NDJSON |
-| Manifests | `GET https://auth.sagecontinuum.org/manifests/` | None | Trailing slash required. Returns all node metadata (2MB+) |
+| Data query (timeseries) | `POST https://data.sagecontinuum.org/api/v1/query` | None (public) | Beehive timeseries from `plugin.publish()`. NDJSON. Filters: `plugin`, `name`, `vsn`, `sensor`. See `references/timeseries-data-query-api.md` |
+| Manifests (rich) | `GET https://auth.sagecontinuum.org/manifests/` · `.../manifests/<vsn>` | None | Full node hardware + sensor **URI**s. Collection needs trailing `/`; single VSN slash optional. Prefer per-VSN (full list ≈2MB+). `?project=` |
+| Nodes (beta) | `GET https://auth.sagecontinuum.org/api/v-beta/nodes/` · `.../nodes/<vsn>` | None | Flatter node card (type, site, partner, focus, modem). Filters: `?phase=`, `?project__name=` (comma=OR) |
 | Edge Scheduler | `https://es.sagecontinuum.org` | Bearer token | Job submission/management |
-| MCP Server | `https://mcp.sagecontinuum.org/mcp` | None (read-only); Bearer token for job submission | 29 tools — see references/mcp-tools.md |
+| MCP Server (Sage) | `https://mcp.sagecontinuum.org/mcp` | None (read-only); Bearer for jobs | 29 Sage tools — `references/mcp-tools.md` |
+| MCP Server (GitHub) | `https://api.githubcopilot.com/mcp/` | Bearer GitHub PAT | Repos/issues/PRs/Actions — [registry](https://github.com/mcp/github/github-mcp-server) · `references/github-mcp-server.md` |
+| MCP Server (Hugging Face) | `https://huggingface.co/mcp` | Bearer HF token | Models/datasets/Spaces/papers/docs/Jobs — [docs](https://huggingface.co/docs/hub/en/agents-mcp) · `references/huggingface-mcp-server.md` |
+| MCP Server (Milvus SDK helper) | `https://sdk.milvus.io/mcp/` | None (`Accept: text/event-stream`) | Prefer **Milvus Lite** + `MilvusClient` — [MCP docs](https://milvus.io/docs/milvus-sdk-helper-mcp.md) · [Lite](https://milvus.io/docs/milvus_lite.md) · `references/milvus-sdk-helper-mcp.md` |
 | Portal | `https://portal.sagecontinuum.org` | Browser login | Node management, token generation |
-| ECR (Edge Code Repo) | `https://portal.sagecontinuum.org/apps` | Browser login | Plugin registry |
+| ECR (Edge Code Repo) | Portal: `https://portal.sagecontinuum.org/apps` · API: `GET https://ecr.sagecontinuum.org/api/apps?public=true` | List public: none | Public plugins/apps available to schedule. Per-app: `/api/apps/<ns>/<name>` · `/api/apps/<ns>/<name>/<ver>`. See `references/ecr-public-apps-api.md` |
+
+Auth / manifest details + related routes (`/computes/`, `/sensors/`, …): **`references/auth-api-manifests-and-nodes.md`**. App source: [waggle-auth-app](https://github.com/waggle-sensor/waggle-auth-app).
 
 Auth tokens: get from `portal.sagecontinuum.org/account/access`. Format: `Authorization: Bearer {token}`.
 
@@ -38,7 +44,33 @@ Auth tokens: get from `portal.sagecontinuum.org/account/access`. Format: `Author
 
 > **Camp default (Thor):** prefer `sudo pluginctl build .` → `sudo pluginctl run` for on-node development. Start with `references/pluginctl-camp-guide.md`. Use raw `podman build` only for ECR-bypass side-load workflows (see `references/pluginctl-sideload-and-node-build.md`).
 
-Plugins are Docker containers using pywaggle. Minimal pattern:
+**Official docs (prefer these URLs when citing Sage):**
+- **Full docs catalog (summary + URL for every page):** `references/sage-docs-index.md` — pick a URL, then fetch the live page for full content
+- **Public code catalog (`waggle-sensor` org):** `references/waggle-sensor-repos-index.md` — summary + URL per public repo (private skipped)
+- **Public code catalog (`sagecontinuum` org):** `references/sagecontinuum-repos-index.md` — summary + URL per public repo (private skipped)
+- **NVIDIA Jetson Thor / JetPack docs catalog:** `references/nvidia-jetson-thor-docs-index.md` — product + JetPack + Jetson Linux r39.2 Developer Guide (summary + URL; prefer Thor pages)
+- **NVIDIA agent skills (vendored):** `references/nvidia-skills-index.md` — [NVIDIA/skills](https://github.com/NVIDIA/skills) (`jetson-*`, DeepStream, TAO, …)
+- **DuckDB docs catalog:** `references/duckdb-docs-index.md` — [duckdb.org/docs](https://duckdb.org/docs/current/) summary + URL (Python/CLI, SQL, CSV/Parquet, guides)
+- **Getting started:** <https://sagecontinuum.org/docs/getting-started>
+- **Edge apps tutorial:** <https://sagecontinuum.org/docs/category/edge-apps>
+- **pluginctl reference:** <https://sagecontinuum.org/docs/reference-guides/pluginctl> · tutorials: <https://github.com/waggle-sensor/edge-scheduler/tree/main/docs/pluginctl>
+- **sesctl reference:** <https://sagecontinuum.org/docs/reference-guides/sesctl> · tutorials: <https://github.com/waggle-sensor/edge-scheduler/tree/main/docs/sesctl>
+
+Plugins are Docker containers using **[pywaggle](https://github.com/waggle-sensor/pywaggle)** — the official Python SDK for Waggle plugins (`waggle.plugin`, cameras, microphones, uploads). Prefer that GitHub repo as the source of truth for API, docs, and source layout (`src/waggle/…`).
+
+**Install:**
+```bash
+pip install -U 'pywaggle[all]'          # core + audio + vision
+# or subsets: pywaggle | pywaggle[audio] | pywaggle[vision]
+```
+
+**Docs / source:**
+- Repo: <https://github.com/waggle-sensor/pywaggle>
+- Writing a plugin: <https://github.com/waggle-sensor/pywaggle/blob/main/docs/writing-a-plugin.md>
+- Plugin source: <https://github.com/waggle-sensor/pywaggle/tree/main/src/waggle>
+- Latest release (PyPI via GitHub releases): check repo Releases (e.g. 0.56.x)
+
+Minimal pattern:
 
 ```python
 from waggle.plugin import Plugin
@@ -371,6 +403,11 @@ See `references/runtime-packaging-patterns.md` for full details: pod lifecycle t
 
 ## Job Scheduling (sesctl)
 
+**Official docs:**
+- Sage reference: <https://sagecontinuum.org/docs/reference-guides/sesctl>
+- edge-scheduler tutorials: <https://github.com/waggle-sensor/edge-scheduler/tree/main/docs/sesctl>
+- Camp notes (CLI flag reality + ECR catalog gate): `references/sesctl-ecr-validation.md`
+
 ### Science rule syntax
 Format: `action : condition`
 
@@ -419,7 +456,33 @@ sesctl rm -j <job-id>          # remove by ID
 > **Reolink audio auth** (BirdNET etc.): FLV/BCS needs creds as query params
 cron-job liveness checks — see `references/job-scheduling-and-liveness.md`.**
 
-## Data Access (sage-data-client)
+## Data Access (timeseries)
+
+Scalar / event data from Sage plugins lands in Beehive and is queried at:
+
+**`POST https://data.sagecontinuum.org/api/v1/query`** (public, no auth) → **NDJSON**.
+
+Full patterns: **`references/timeseries-data-query-api.md`**. Tutorial: [Access and use data](https://sagecontinuum.org/docs/tutorials/accessing-data).
+
+### Example — recent samples from `plugin-iio`
+
+```bash
+curl https://data.sagecontinuum.org/api/v1/query \
+  -d '{"start":"-30m","filter":{"plugin":".*plugin-iio.*"}}'
+```
+
+```python
+import sage_data_client
+
+df = sage_data_client.query(
+    start="-30m",
+    filter={
+        "plugin": ".*plugin-iio.*",
+    },
+)
+```
+
+### By node / measurement
 
 ```python
 import sage_data_client
@@ -430,8 +493,6 @@ df = sage_data_client.query(
 )
 # Returns pandas DataFrame with: timestamp, name, value, meta (sensor, vsn, node, plugin)
 ```
-
-### curl (no Python needed)
 
 ```bash
 curl -s -X POST https://data.sagecontinuum.org/api/v1/query -d '
@@ -444,24 +505,26 @@ curl -s -X POST https://data.sagecontinuum.org/api/v1/query -d '
 }'
 ```
 
-Returns NDJSON (one JSON object per line). The data API is public — no auth needed.
+Filters: `name` (measurement), `sensor` (hardware), `vsn` (node ID), `plugin` (source plugin). Supports wildcards / regex (e.g. `".*plugin-iio.*"`).
 
-Filters: `name` (measurement), `sensor` (hardware), `vsn` (node ID), `plugin` (source plugin). Supports `*` wildcards.
-
-Large files (images, audio): stored on Open Storage Network (S3-compatible object store), not in time-series DB.
+Large files (images, audio): stored on Open Storage Network (S3-compatible object store), not in the timeseries DB.
 
 ## Triggers
 
 - **Cloud-to-edge**: data arrival in Beehive triggers edge job (Lambda Triggers)
 - **Edge-to-cloud**: edge data triggers HPC/cloud compute via sage-data-client polling
 - **External notifications (Slack, email, etc.)**: run a watcher script externally that polls the data API and reacts. Containers on Sage nodes are network-restricted and cannot reach external services. Host processes on some nodes (e.g. Thor via SSH) CAN reach external URLs — but the recommended pattern is a cloud-side watcher, not a host-side process. See `references/cloud-trigger-notifications.md` for the full pattern, Slack webhook + image upload examples, secret management, and reference implementations (hummingbird-watcher, wildfire-trigger, severe-weather-trigger).
+- **Shareable web viz of fleet data** (public API + CORS proxy, themes, WebGL fallback): `references/sage-data-web-viz.md` · 3D globe: `references/sage-data-3d-globe-viz.md` · template: `templates/sage-cors-proxy-server.py`
+- **Share a Sage knowledge bundle** (skills tap, secret scrubbing, starter README): `references/sharing-a-sage-knowledge-bundle.md`
 
 ## GitHub Organizations
 
-- `sagecontinuum` — 26+ repos (sage-data-client, sage-gui, sage-cli, sesctl, beekeeper)
-- `waggle-sensor` — 80+ repos (pywaggle, waggle-edge-stack, edge-scheduler, pluginctl, plugin-base, virtual-waggle)
+- `sagecontinuum` — public repo catalog: `references/sagecontinuum-repos-index.md` (sage-data-client, sage-gui, sage-storage-*, sage-object-store, …; private skipped)
+- `waggle-sensor` — public repo catalog: `references/waggle-sensor-repos-index.md`; **pywaggle SDK:** <https://github.com/waggle-sensor/pywaggle> (also waggle-edge-stack, edge-scheduler / pluginctl+sesctl, plugin-base, virtual-waggle, sage-mcp)
 
 ## Hermes Native MCP Integration
+
+### Sage MCP (pre-wired)
 
 Wire up the Sage MCP server as a native Hermes tool so all 29 tools are callable directly (no curl/JSON-RPC):
 
@@ -474,6 +537,45 @@ hermes mcp list
 ```
 
 After adding, start a new session. Tools appear as `mcp_sage_*` (e.g. `mcp_sage_list_available_nodes`, `mcp_sage_find_plugins_for_task`). No auth needed for read-only operations (data queries, node listing, plugin search, docs). Job submission tools (`submit_sage_job`, `submit_plugin_job`) require a Bearer token configured via portal.
+
+### GitHub MCP (optional — enable when needed)
+
+Official server: [MCP Registry — GitHub](https://github.com/mcp/github/github-mcp-server) · remote endpoint `https://api.githubcopilot.com/mcp/`.
+
+Shipped in profile `mcp.json` as **`github` with `enabled: false`** until you add a PAT. Setup: **`references/github-mcp-server.md`**.
+
+```bash
+hermes mcp add github --url "https://api.githubcopilot.com/mcp/"
+# When prompted, use Authorization Bearer <GITHUB_PAT>
+hermes mcp list
+```
+
+Use for live GitHub repos/issues/PRs (e.g. `waggle-sensor/pywaggle`). Prefer `/mcp/readonly` or a read-only PAT when you only need browse access.
+
+### Hugging Face MCP (optional — enable when needed)
+
+Official server: [Hugging Face MCP docs](https://huggingface.co/docs/hub/en/agents-mcp) · remote endpoint `https://huggingface.co/mcp`.
+
+Shipped in profile `mcp.json` as **`huggingface` with `enabled: false`** until you add an HF token. Toggle tools/Spaces at [settings/mcp](https://huggingface.co/settings/mcp). Setup: **`references/huggingface-mcp-server.md`**.
+
+```bash
+hermes mcp add huggingface --url "https://huggingface.co/mcp"
+# When prompted, use Authorization Bearer <HF_TOKEN>
+hermes mcp list
+```
+
+Use for Hub models/datasets/Spaces/papers, HF documentation search, and Hub Jobs. Prefer Sage MCP for nodes/data; GitHub MCP for repos/PRs.
+
+### Milvus SDK Code Helper (pre-wired)
+
+Official helper: [milvus.io docs](https://milvus.io/docs/milvus-sdk-helper-mcp.md) · endpoint `https://sdk.milvus.io/mcp/` (header `Accept: text/event-stream`). Shipped **enabled** in `mcp.json` as `sdk-code-helper`. Setup notes: **`references/milvus-sdk-helper-mcp.md`**.
+
+```bash
+hermes mcp add sdk-code-helper --url "https://sdk.milvus.io/mcp/"
+hermes mcp list
+```
+
+Use when generating vector-search code: prefer **Milvus Lite** (`pip install -U "pymilvus[milvus-lite]"`, `MilvusClient("./demo.db")`) and current `MilvusClient` APIs — not full Milvus Standalone/Docker unless the user asks.
 
 ## Working with This Project
 
@@ -490,7 +592,7 @@ After adding, start a new session. Tools appear as `mcp_sage_*` (e.g. `mcp_sage_
 - **Naming rules are strict**: repo names = lowercase alphanumeric + hyphens only (NO underscores); job names = lowercase letters, numbers, hyphens only (no underscores, uppercase, dots); plugin names in sage.yaml can use underscores
 - **Version immutability**: cannot resubmit same version to ECR — bump version every time
 - **Bulk version bumps in monorepos**: when bumping versions (e.g. `0.1.0` → `0.2.0`) across sage.yaml, job YAMLs, Dockerfiles, and docs, skip generic tutorial/example files that use the old version as a hypothetical placeholder (e.g. `docs/sage-runtime-packaging-tutorial.md` using `my-plugin:0.1.0` as a generic example). Use `replace_all=True` per-file rather than a blind global sed to avoid corrupting unrelated examples.
-- Manifests endpoint requires trailing slash (`/manifests/` not `/manifests`)
+- Manifests collection needs trailing slash (`/manifests/`); single node is `/manifests/<vsn>` (slash optional). Prefer per-VSN; also use `/api/v-beta/nodes/<vsn>` for flatter site/type metadata — see `references/auth-api-manifests-and-nodes.md`
 - Data API uses NDJSON (newline-delimited JSON), not standard JSON array
 - Portal can be slow/timeout — prefer API endpoints for programmatic access. Portal rebuilds DB on Sundays.
 - sage-data-client returns pandas DataFrames — ensure pandas is installed
@@ -628,6 +730,41 @@ Docker image naming: `registry.sagecontinuum.org/<user>/<plugin-name>:<version>`
 
 ## See Also
 
+- **`references/duckdb-docs-index.md`** — catalog of [DuckDB docs (current)](https://duckdb.org/docs/current/): title, summary, URL (fetch live for SQL/examples; high-signal Python/CLI/CSV/Parquet list at top)
+- **`references/milvus-sdk-helper-mcp.md`** — Milvus SDK helper MCP; camp default **Milvus Lite** (`MilvusClient("./….db")`) not full Milvus — [MCP](https://milvus.io/docs/milvus-sdk-helper-mcp.md) · [Lite](https://milvus.io/docs/milvus_lite.md)
+- **`references/huggingface-mcp-server.md`** — Hugging Face MCP remote endpoint `https://huggingface.co/mcp` ([docs](https://huggingface.co/docs/hub/en/agents-mcp)); Hermes add + HF token; tools at [settings/mcp](https://huggingface.co/settings/mcp)
+- **`references/huggingface-skills-index.md`** — vendored [huggingface/skills](https://github.com/huggingface/skills) catalog (`hf-cli`, Gradio, Spaces, training, …); pin in `skills/_vendor/`
+- **`references/nvidia-skills-index.md`** — vendored [NVIDIA/skills](https://github.com/NVIDIA/skills) catalog (~230 skills; camp priority `jetson-*`); pin in `skills/_vendor/` · [docs.nvidia.com/skills](https://docs.nvidia.com/skills)
+- **`references/graphify-guide.md`** — **required** [Graphify](https://github.com/Graphify-Labs/graphify): query `graphify-out/` before grepping; use **`/graphify <path-to-profile>`** (+ `--update`) with **`.venv-graphify`**; unpack `graphify-baseline.tar.gz` when present
+- **`references/github-mcp-server.md`** — GitHub MCP remote endpoint `https://api.githubcopilot.com/mcp/` ([registry](https://github.com/mcp/github/github-mcp-server)); Hermes add + PAT auth
+- **`references/ecr-public-apps-api.md`** — `GET https://ecr.sagecontinuum.org/api/apps?public=true` to list scheduleable public ECR plugins (fields, related `/apps/<ns>/<name>` URLs)
+- **`references/timeseries-data-query-api.md`** — `POST https://data.sagecontinuum.org/api/v1/query` for plugin/node timeseries (curl + `sage_data_client`; e.g. `plugin: ".*plugin-iio.*"`)
+- **`references/nvidia-jetson-thor-docs-index.md`** — catalog of [Jetson Thor](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor/), [JetPack](https://developer.nvidia.com/embedded/jetpack), and [Jetson Linux Developer Guide r39.2](https://docs.nvidia.com/jetson/archives/r39.2/DeveloperGuide/): title, summary, URL (fetch live for full content; Thor-focused quick list at top)
+- **`references/auth-api-manifests-and-nodes.md`** — `auth.sagecontinuum.org` manifests + `api/v-beta/nodes` (+ `/computes/`, `/sensors/`): URL, auth, field-level descriptions; source [waggle-auth-app](https://github.com/waggle-sensor/waggle-auth-app)
+- **`references/sage-docs-index.md`** — catalog of every page under [sagecontinuum.org/docs](https://sagecontinuum.org/docs/getting-started): title, summary, URL (fetch live for full content)
+- **`references/waggle-sensor-repos-index.md`** — catalog of **public** repos under [github.com/orgs/waggle-sensor](https://github.com/orgs/waggle-sensor/repositories): summary + URL (clone/browse for source; private repos omitted)
+- **`references/sagecontinuum-repos-index.md`** — catalog of **public** repos under [github.com/orgs/sagecontinuum](https://github.com/orgs/sagecontinuum/repositories): summary + URL (private repos omitted; many edge-stack tools live under `waggle-sensor` instead)
+- **`references/stack-architecture-map.md`** — end-to-end Sage/Waggle stack map (edge ↔ Beehive ↔ portal)
+- **`references/pywaggle2-producer-consumer-architecture.md`** — producer/consumer plugin architecture (pywaggle2)
+- **`references/frame-anchored-batch-consumers-and-watchers.md`** / **`references/frame-anchored-vs-window-pollers.md`** — frame-anchored batch consumers vs window pollers
+- **`references/crop-producer-detect-classify-cascade.md`** / **`references/detect-then-crop-then-classify-cascade.md`** — detect → crop → classify cascades
+- **`references/node-sideload-test-and-restore.md`** — on-node sideload test + restore workflow
+- **`references/audio-plugin-multinode-testing.md`** — multi-node audio plugin testing
+- **`references/wes-pod-config-and-manifest-exposure.md`** — WES pod config + manifest exposure
+- **`references/git-bundle-transfer-to-node.md`** — git bundle transfer onto a node
+- **`references/ecr-build-to-ses-cutover.md`** — ECR build → SES cutover
+- **`references/jobspec-verification-discipline.md`** / **`references/node-access-and-job-ownership.md`** — jobspec verification + node access/ownership
+- **`references/ci-handoff-doc-discipline.md`** — CI handoff / doc discipline
+- **`references/external-project-edge-porting-review.md`** — reviewing external projects for edge porting
+- **`references/data-query-first-report-and-history.md`** / **`references/data-viz-and-honesty.md`** — query-first reporting + viz honesty (no fabricated VSNs/data)
+- **`references/sage-data-web-viz.md`** / **`references/sage-data-3d-globe-viz.md`** — shareable Sage data web / 3D globe viz
+- **`references/sharing-a-sage-knowledge-bundle.md`** — packaging/sharing a Sage Hermes knowledge bundle
+- **`scripts/sample_wind_history.py`** / **`scripts/sigpipe-pipefail-regression.sh`** — sample wind history helper + SIGPIPE/`pipefail` regression check
+- **`templates/sage-cors-proxy-server.py`** — CORS proxy template for browser viz against the public data API
+- **Edge apps (tutorial series):** <https://sagecontinuum.org/docs/category/edge-apps>
+- **pluginctl:** <https://sagecontinuum.org/docs/reference-guides/pluginctl> · <https://github.com/waggle-sensor/edge-scheduler/tree/main/docs/pluginctl>
+- **sesctl:** <https://sagecontinuum.org/docs/reference-guides/sesctl> · <https://github.com/waggle-sensor/edge-scheduler/tree/main/docs/sesctl>
+- **pywaggle (plugin SDK):** <https://github.com/waggle-sensor/pywaggle> — install, Writing a plugin guide, `src/waggle` source. Skill notes on uploads/timestamps assume this package.
 - Monorepo archive: https://github.com/flint-pete/sage-edge-plugins
 - Per-plugin repos (required for ECR submission; each has DOCKER-BUILD.md + THOR-TESTING.md): https://github.com/flint-pete/sage-yolo, sage-bioclip (v0.3.0 = BioCLIP 2.5 Huge, v0.2.1 = BioCLIP 2), sage-vllm, birdnet, image-sampler2. birdnet = BirdNET V2.4 audio classifier (`pip install birdnet`, TFLite CPU ARM64); sources `--input`/`--camera` URL/USB mic; Reolink FLV audio uses QUERY-PARAM auth not basic; auto-detects node location+week. Detail: references/audio-plugin-debugging-birdnet.md, references/birdnet-audio-debugging-and-geofilter.md, references/reolink-audio-capture.md.
 - `references/architecture-detail.md` — full architecture notes

@@ -22,9 +22,10 @@ If the catalog lacks your exact version you get:
 ## ECR API contract (discovered this session)
 
 - Base: `https://ecr.sagecontinuum.org/api`
-- Auth header: `Authorization: Sage <portal-token>`  (NOT Bearer/Token)
-- `GET /apps/<ns>/<name>`            → public catalog list: `{"data":[{id,...}]}`
-- `GET /apps/<ns>/<name>/<version>`  → one full version record (auth'd)
+- **Public catalog (discovery / scheduleable apps):** `GET /apps?public=true` → `{"data":[…],"pagination":{…}}`. Details: `references/ecr-public-apps-api.md`
+- Auth header (writes / some private reads): `Authorization: Sage <portal-token>`  (NOT Bearer/Token)
+- `GET /apps/<ns>/<name>`            → public versions for one app: `{"data":[{id,...}]}`
+- `GET /apps/<ns>/<name>/<version>`  → one full version record
 - `POST /submit`                     → register a version. Body = full app
   metadata JSON. **Required field: `description`** (500 "Required field
   description is missing" otherwise). Re-submitting an existing version →

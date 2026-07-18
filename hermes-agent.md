@@ -1,5 +1,4 @@
 # Hermes Agent Setup Guide
->NOTE: This is stil in development, so go ahead and try it out and let us know if you have any issues.
 
 Run **Hermes Agent on your Thor** — your laptop is only an SSH client. Hermes handles files, terminal, and tools on the Thor; inference runs on the same machine via **Ollama** (Part 1) or over HTTPS to **NVIDIA Build** (Part 2) or **NRP Managed LLMs** (Part 2B).
 
@@ -8,13 +7,14 @@ Every participant has their **own Linux account** on the Thor. Hermes installs i
 | Guide | Best for |
 | ----- | -------- |
 | [Part 1 — Thor + Ollama](#part-1-thor--ollama) | Local GPU inference via Ollama on your assigned Thor |
-| [Step 4B — Cap Ollama context](#step-4b--cap-ollama-context-recommended) | Faster first response on Thor (recommended after install) |
 | [Part 2 — NVIDIA Hosted APIs](#part-2-nvidia-hosted-apis) | Cloud inference via NVIDIA Build (no Ollama needed) |
-| [Part 2B — NRP Managed LLMs](#part-2b-nrp-managed-llms) | Cloud inference via NRP Nautilus (`gpt-oss` default) |
+| [Part 2B — NRP Managed LLMs](#part-2b-nrp-managed-llms) | Cloud inference via NRP Nautilus (`minimax-m2` default) |
 | [Part 3 — Transferring the brain](#part-3-transferring-the-brain) | Share agent config or move to a new machine via profile distribution |
 | [Comparison](#inference-options-compared) | Choosing between inference approaches |
 | [Switching between approaches](#switching-between-approaches) | Swap providers without reinstalling |
+| [Hermes web dashboard](#hermes-web-dashboard) | Browser UI on your laptop via SSH tunnel + `hermes dashboard` |
 | [Token economy](#token-economy) | Manage context, cost, and fair use across providers |
+| [Updating the knowledge graph](#updating-the-knowledge-graph) | Refresh Graphify after skills/docs change (`/graphify … --update`) |
 
 **Docs:** [Hermes Documentation](https://hermes-agent.nousresearch.com/docs/) · [Profile Distributions](https://hermes-agent.nousresearch.com/docs/user-guide/profile-distributions)
 
@@ -120,8 +120,10 @@ The camp maintains a Hermes **profile distribution** in this repo at [`hermes-pr
 
 | Shipped (distribution-owned) | Never shipped (user-owned) |
 | --- | --- |
-| SOUL.md, config.yaml, skills/, mcp.json, cron/ | `memories/`, `sessions/`, `auth.json`, `.env` |
+| SOUL.md, AGENTS.md, config.yaml, skills/, docs/, scripts/, mcp.json | `memories/`, `sessions/`, `auth.json`, `.env` |
 | Updated via `hermes profile update` | Preserved across updates — your brain stays isolated |
+
+> see [agent-knowledge-graph](hermes-profile/agent-knowledge-graph.html) for a visual representation of the agent's baseline knowledge. As your agent learns, the graph will be updated with new knowledge in path-to-profile/graphify-out/graph.html.
 
 ### Install from local clone (recommended)
 
@@ -157,9 +159,26 @@ hermes profile install github.com/FranciscoLozCoding/sage-hermes --alias
 hermes profile use sage
 cp ~/.hermes/profiles/sage/.env.EXAMPLE ~/.hermes/profiles/sage/.env
 # Edit .env if needed — add NVIDIA_API_KEY (nvapi-...) for Part 2; leave blank for Thor+Ollama
+
+# Required — Graphify: venv + optional baseline tarball; then skill `/graphify`
+cd ~/.hermes/profiles/sage
+if [ ! -x .venv-graphify/bin/python ]; then
+  python3 -m venv .venv-graphify
+  .venv-graphify/bin/pip install -U pip
+  .venv-graphify/bin/pip install -U 'graphifyy[ollama]'
+fi
+if [ ! -f graphify-out/graph.json ] && [ -f graphify-baseline.tar.gz ]; then
+  tar -xzf graphify-baseline.tar.gz
+fi
+test -f graphify-out/graph.json && echo "graph ok"
+# If still missing: in Hermes run  /graphify ~/.hermes/profiles/sage
+# After skill/doc changes:         /graphify ~/.hermes/profiles/sage --update
+
 hermes profile info sage
 hermes doctor
 ```
+
+> **Graphify is required.** The profile ships many skills (Sage, Hugging Face, NVIDIA) plus a prebuilt `graphify-baseline.tar.gz`. Hermes must discover the right skill via `graphify-out/` (`AGENTS.md` + skill `graphify`). See [`hermes-profile/skills/sage-waggle/references/graphify-guide.md`](hermes-profile/skills/sage-waggle/references/graphify-guide.md). Prefer unpacking the tarball; otherwise `/graphify <absolute-path-to-profile>`. Always use **`.venv-graphify`**. For local Ollama extracts: `OLLAMA_BASE_URL` must end with `/v1`, leave `GRAPHIFY_OLLAMA_NUM_CTX` unset. After the graph exists, use skill **`graphify`** (`query` / `--update`) — not a full rebuild for incremental adds.
 
 Launch with `sage` or `hermes -p sage`.
 
@@ -457,7 +476,10 @@ sudo pluginctl rm test
 - Use **fully-qualified** base images in Dockerfiles: `FROM docker.io/waggle/plugin-base:1.1.1-base` (Podman on Thor has no short-name registry default)
 - ECR portal builds may still fail (runc bug) — `podman` + `k3s ctr images import` remains the side-load workaround; see the `sage-waggle` skill. **`pluginctl build` is the normal on-node development path.**
 
-**References:** [Sage pluginctl](https://sagecontinuum.org/docs/reference-guides/pluginctl) · [edge-scheduler pluginctl docs](https://github.com/waggle-sensor/edge-scheduler/tree/main/docs/pluginctl#readme) · [Tutorial: building a plugin](https://github.com/waggle-sensor/edge-scheduler/blob/main/docs/pluginctl/tutorial_build.md)
+**References:**
+- **pluginctl:** [Sage reference](https://sagecontinuum.org/docs/reference-guides/pluginctl) · [edge-scheduler tutorials](https://github.com/waggle-sensor/edge-scheduler/tree/main/docs/pluginctl) · [build tutorial](https://github.com/waggle-sensor/edge-scheduler/blob/main/docs/pluginctl/tutorial_build.md)
+- **Edge apps:** [tutorial series](https://sagecontinuum.org/docs/category/edge-apps)
+- **sesctl** (fleet scheduling after ECR): [Sage reference](https://sagecontinuum.org/docs/reference-guides/sesctl) · [edge-scheduler tutorials](https://github.com/waggle-sensor/edge-scheduler/tree/main/docs/sesctl)
 
 **tmux issues:**
 
@@ -525,6 +547,7 @@ Popular options:
 
 | Model ID |
 | -------- |
+| `z-ai/glm-5.2` |
 | `meta/llama-3.3-70b-instruct` |
 | `qwen/qwen3-235b-a22b` |
 | `deepseek-ai/deepseek-r1` |
@@ -584,7 +607,7 @@ All inference requests go to NVIDIA's hosted infrastructure from the Thor.
 
 # Part 2B: NRP Managed LLMs
 
-Hermes runs on the Thor and talks to **[NRP Managed LLMs](https://nrp.ai/documentation/userdocs/ai/llm-managed/)** over HTTPS via the Envoy AI Gateway. No Ollama required. The camp profile ships **`gpt-oss`** ([openai/gpt-oss-120b](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/#gpt-oss)) as the default NRP model — strong tool calling, reasoning, and 128K context.
+Hermes runs on the Thor and talks to **[NRP Managed LLMs](https://nrp.ai/documentation/userdocs/ai/llm-managed/)** over HTTPS via the Envoy AI Gateway. No Ollama required. The camp profile ships **`minimax-m2`** ([NRP model card](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/#minimax-m2)) as the default NRP model — strong agentic tool calling and ~200K context.
 
 ## At a glance
 
@@ -627,7 +650,7 @@ NRP_LLM_API_KEY=<your-token>
 curl -H "Authorization: Bearer $NRP_LLM_API_KEY" https://ellm.nrp-nautilus.io/v1/models
 ```
 
-You should see `gpt-oss` and other active models in the response.
+You should see `minimax-m2` and other active models in the response.
 
 ---
 
@@ -642,11 +665,11 @@ hermes model
 | Provider | **`nrp`** (custom provider) |
 | API Key env | `NRP_LLM_API_KEY` (from `.env`) |
 | Base URL | `https://ellm.nrp-nautilus.io/v1` (pre-configured) |
-| Model | **`gpt-oss`** |
+| Model | **`minimax-m2`** |
 
-Or edit `~/.hermes/profiles/sage/config.yaml` directly — the `nrp` provider and `gpt-oss` model are already defined under `custom_providers`.
+Or edit `~/.hermes/profiles/sage/config.yaml` directly — the `nrp` provider and `minimax-m2` model are already defined under `custom_providers`.
 
-> **Why gpt-oss?** LTS-friendly, strong tool calling, 128K context — a good general-purpose camp default on NRP. Browse the [model matrix](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/) to pick others (`qwen3`, `gemma`, `kimi`, etc.) via `hermes model`.
+> **Why minimax-m2?** Strong agentic coding / tool use and ~200K context on NRP. Browse the [model matrix](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/) to pick others (`gpt-oss`, `qwen3`, `gemma`, `kimi`, etc.) via `hermes model`. Note: NRP currently lists `minimax-m2` as **evaluating** — availability may change.
 
 ---
 
@@ -667,7 +690,7 @@ All inference requests go to NRP's managed infrastructure from the Thor.
 
 1. Confirm your group has the LLM flag — without it, the endpoint returns auth errors.
 2. Token must be passed as `Authorization: Bearer <token>`.
-3. Model ID is **`gpt-oss`** (not `openai/gpt-oss-120b`) — use the short API alias from `/v1/models`.
+3. Model ID is **`minimax-m2`** — use the short API alias from `/v1/models` (not a HuggingFace path).
 4. Review the [Fair Use Policy](https://nrp.ai/documentation/userdocs/ai/llm-managed/fair-use-policy/) — per-model concurrency limits apply.
 5. Confirm the token is in **your** `.env`, not another user's.
 
@@ -824,14 +847,14 @@ hermes doctor
 | **Where inference runs** | Thor (Ollama, local GPU) | NRP Nautilus (cloud) | NVIDIA Build (cloud) |
 | **Endpoint** | `http://127.0.0.1:11434/v1` | `https://ellm.nrp-nautilus.io/v1` | `https://integrate.api.nvidia.com/v1` |
 | **API key** | Not required | `NRP_LLM_API_KEY` (Bearer token) | `NVIDIA_API_KEY` (`nvapi-...`) |
-| **Default camp model** | `gemma4:31b` | `gpt-oss` | (user picks from catalog) |
+| **Default camp model** | `gemma4:31b` | `minimax-m2` | (user picks from catalog) |
 | **Internet** | Only for SSH | Always (on Thor) | Always (on Thor) |
 | **Models** | Any Ollama model on the Thor | NRP catalog ([model matrix](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/)) | NVIDIA catalog only |
 | **Cost** | Shared Thor GPU | NRP fair-use policy | NVIDIA Build credits |
 
 **Choose Thor + Ollama** when you want full model control on local GPU hardware.
 
-**Choose NRP** when you want NSF-hosted cloud inference with open-weights models (e.g. `gpt-oss`, `qwen3`, `gemma`).
+**Choose NRP** when you want NSF-hosted cloud inference with open-weights models (e.g. `minimax-m2`, `gpt-oss`, `qwen3`, `gemma`).
 
 **Choose NVIDIA** when you want NVIDIA Build catalog models and credits.
 
@@ -848,10 +871,51 @@ hermes model
 Select the appropriate provider:
 
 - **`local-sage-thor`** — Thor + Ollama (`gemma4:31b`)
-- **`nrp`** — NRP Managed LLMs (`gpt-oss` default)
+- **`nrp`** — NRP Managed LLMs (`minimax-m2` default)
 - **NVIDIA NIM** — NVIDIA Build hosted APIs
 
 If using the camp profile, you can also edit `~/.hermes/profiles/sage/.env` and `config.yaml` directly.
+
+---
+
+# Hermes web dashboard
+
+The [Hermes web dashboard](https://hermes-agent.nousresearch.com/docs/user-guide/features/web-dashboard) is a browser UI for sessions, config, skills, and chat. On Thor there is no local browser — keep the dashboard bound to **localhost on the Thor** and open it on your **laptop** through an SSH tunnel.
+
+## 1. Port-forward from your laptop
+
+In a **local** terminal (not on the Thor), forward port `9119`:
+
+```bash
+ssh -L 9119:127.0.0.1:9119 your-linux-user@thor-host
+```
+
+Leave that SSH session open while you use the dashboard. Optional background tunnel (no remote shell):
+
+```bash
+ssh -f -N -L 9119:127.0.0.1:9119 your-linux-user@thor-host
+```
+
+## 2. Start the dashboard on the Thor
+
+```bash
+# Use the sage profile if that is your active camp profile:
+hermes -p sage dashboard --host 127.0.0.1 --port 9119 --no-open
+# or, if sage is already the active profile / alias:
+hermes dashboard --host 127.0.0.1 --port 9119 --no-open
+```
+
+`--no-open` skips trying to launch a browser on the headless Thor.
+
+## 3. Open it on your laptop
+
+In your laptop browser:
+
+```text
+http://127.0.0.1:9119 #or http://localhost:9119
+```
+
+When finished, stop the dashboard (`Ctrl-C` on the Thor) and close the SSH tunnel.
 
 ---
 
@@ -862,3 +926,25 @@ A practical guide for using context, compute, and provider quotas responsibly du
 **Full guide:** [token-economy.md](token-economy.md)
 
 **Thor quick fix:** if your first Hermes response takes 3+ minutes, run [Step 4B — Cap Ollama context](#step-4b--cap-ollama-context-recommended) before blaming the agent.
+
+---
+
+# Updating The Knowledge Graph
+
+After adding/changing skills or docs **with a graph already built** → use skill **`graphify`** with **`.venv-graphify`** (create the venv if missing). Prefer the absolute **profile** path (Hermes CWD is often `$HOME`). Full `/graphify <profile>` again is start-from-scratch only — use `--update` for incremental adds.
+
+```text
+/graphify /path/to/hermes-profile --update
+```
+
+Examples: `$HOME/.hermes/profiles/sage` or `$HOME/summer-camp-2026/hermes-profile`.
+
+To refresh the shipped camp baseline after a rebuild, from the profile root:
+
+```bash
+cp graphify-out/graph.html agent-knowledge-graph.html
+tar -czf graphify-baseline.tar.gz graphify-out
+git add agent-knowledge-graph.html graphify-baseline.tar.gz
+git commit -m "Update knowledge graph baseline"
+git push
+```
