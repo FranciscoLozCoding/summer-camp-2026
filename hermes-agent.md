@@ -157,6 +157,8 @@ hermes doctor
 
 Launch with `hermes`.
 
+> **Note:** Graphify will automatically be used by the agent. see [graphify-guide.md](hermes-profile/skills/sage-waggle/references/graphify-guide.md) or [graphify skills](hermes-profile/skills/graphify/SKILL.md) for more details.
+
 ### Pull camp config updates
 
 ```bash
