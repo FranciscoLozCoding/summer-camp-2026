@@ -10,7 +10,7 @@ Every participant has their **own Linux account** on the Thor. Hermes installs i
 | [Part 2 — NVIDIA Hosted APIs](#part-2-nvidia-hosted-apis) | Cloud inference via NVIDIA Build (no Ollama needed) |
 | [Part 2B — NRP Managed LLMs](#part-2b-nrp-managed-llms) | Cloud inference via NRP Nautilus (`minimax-m2` default) |
 | [Part 3 — Transferring the brain](#part-3-transferring-the-brain) | Share agent config or move to a new machine via profile distribution |
-| [Comparison](#inference-options-compared) | Choosing between inference approaches |
+| [Inference options compared](#inference-options-compared) | Local Thor vs NVIDIA vs NRP vs paid APIs — which model to use |
 | [Switching between approaches](#switching-between-approaches) | Swap providers without reinstalling |
 | [Hermes web dashboard](#hermes-web-dashboard) | Browser UI on your laptop via SSH tunnel + `hermes dashboard` |
 | [Token economy](#token-economy) | Manage context, cost, and fair use across providers |
@@ -825,22 +825,72 @@ hermes doctor
 
 # Inference options compared
 
-| | Thor + Ollama | NRP Managed LLMs | NVIDIA Hosted APIs |
-| --- | --- | --- | --- |
-| **Where Hermes runs** | Thor | Thor | Thor |
-| **Where inference runs** | Thor (Ollama, local GPU) | NRP Nautilus (cloud) | NVIDIA Build (cloud) |
-| **Endpoint** | `http://127.0.0.1:11434/v1` | `https://ellm.nrp-nautilus.io/v1` | `https://integrate.api.nvidia.com/v1` |
-| **API key** | Not required | `NRP_LLM_API_KEY` (Bearer token) | `NVIDIA_API_KEY` (`nvapi-...`) |
-| **Default camp model** | `gemma4:31b` | `minimax-m2` | (user picks from catalog) |
-| **Internet** | Only for SSH | Always (on Thor) | Always (on Thor) |
-| **Models** | Any Ollama model on the Thor | NRP catalog ([model matrix](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/)) | NVIDIA catalog only |
-| **Cost** | Shared Thor GPU | NRP fair-use policy | NVIDIA Build credits |
+Hermes always **runs on your Thor** (files, terminal, tools). What changes is **where the LLM lives**. The camp profile is wired so you can switch among these.
 
-**Choose Thor + Ollama** when you want full model control on local GPU hardware.
+## 1. Local model on the Thor (Ollama) — Part 1
 
-**Choose NRP** when you want NSF-hosted cloud inference with open-weights models (e.g. `minimax-m2`, `gpt-oss`, `qwen3`, `gemma`).
+Run inference **on the same machine** as Hermes via Ollama (camp default often `gemma4:31b`).
 
-**Choose NVIDIA** when you want NVIDIA Build catalog models and credits.
+- **Why it’s cool:** True on-device / edge-style agent — no cloud LLM required for the chat loop. Great for learning what agentic workflows feel like when the model sits next to the tools and sensors.
+- **Tradeoff:** Can feel **slower** than frontier cloud APIs, especially on large models or long context. Shared GPU with classmates.
+- **When it shines:** Smaller or coding-oriented models that fit local VRAM; offline-ish experiments; understanding edge constraints before you rely on the cloud.
+
+Setup: [Part 1 — Thor + Ollama](#part-1-thor--ollama). Switch later with `hermes model` → **`local-sage-thor`**.
+
+## 2. Big frontier models at NVIDIA (hosted APIs) — Part 2
+
+Send prompts from the Thor to **NVIDIA Build** over HTTPS — among the largest / fastest hosted models available to camp.
+
+- **Why it’s cool:** Frontier-class capability without filling Thor VRAM.
+- **Tradeoff:** Rate limits apply (plan around about **40 requests per minute** — don’t hammer the API in tight loops). Needs `NVIDIA_API_KEY` and internet from the Thor.
+- **When it shines:** Hard reasoning, big coding tasks, when local Ollama is too slow or too small.
+
+Setup: [Part 2 — NVIDIA Hosted APIs](#part-2-nvidia-hosted-apis).
+
+## 3. Hosted LLMs at NRP — Part 2B
+
+Use **NRP Managed LLMs** (`https://ellm.nrp-nautilus.io/v1`) — NSF research infrastructure. Camp default model: **`minimax-m2`** (others like `gpt-oss`, `qwen3`, `gemma` are in the [NRP catalog](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/)).
+
+- **Why it’s cool:** Strong open-weights models with a research fair-use policy; good middle path between “local only” and “NVIDIA frontier.”
+- **Tradeoff:** Needs an NRP LLM token (`NRP_LLM_API_KEY`) and group LLM access; concurrency / fair-use limits apply (see [token economy](#token-economy)).
+- **When it shines:** Longer coding / agentic sessions on NRP models without burning NVIDIA request budget.
+
+Setup: [Part 2B — NRP Managed LLMs](#part-2b-nrp-managed-llms). Switch with `hermes model` → **`nrp`**.
+
+## 4. Commercial APIs (optional — you pay)
+
+You can also point Hermes at a **paid** provider (OpenAI, Anthropic, OpenRouter, MiniMax direct, etc.) with your own key.
+
+- **Why someone does it:** Specific model not in NRP/NVIDIA catalogs, or personal preference.
+- **Tradeoff:** **Real money** per token; you own the billing and keys.
+- **When it shines:** Only if you knowingly want that model and accept the cost.
+
+Use `hermes model` / provider setup in the Hermes docs; keep keys in **your** `.env` only.
+
+> **Note:** A Commercial API is not required for this camp. The camp provides free and shared options for all students.
+
+## Quick chooser
+
+| Goal | Prefer |
+| ---- | ------ |
+| Learn edge-style agents; stay on-box | **1 — Thor + Ollama** |
+| Max capability / speed for hard tasks | **2 — NVIDIA Build** (watch rate limits) |
+| Strong hosted open models, camp default cloud path | **3 — NRP** (`minimax-m2`) |
+| A vendor model you’re willing to pay for | **4 — Commercial API** |
+
+Same Hermes install — swap with `hermes model` ([Switching between approaches](#switching-between-approaches)).
+
+## Detail table
+
+| | 1. Thor + Ollama | 3. NRP Managed LLMs | 2. NVIDIA Hosted APIs | 4. Commercial (optional) |
+| --- | --- | --- | --- | --- |
+| **Where Hermes runs** | Thor | Thor | Thor | Thor |
+| **Where inference runs** | Thor (Ollama, local GPU) | NRP Nautilus (cloud) | NVIDIA Build (cloud) | Vendor cloud (you pay) |
+| **Endpoint** | `http://127.0.0.1:11434/v1` | `https://ellm.nrp-nautilus.io/v1` | `https://integrate.api.nvidia.com/v1` | Provider-specific |
+| **API key** | Not required | `NRP_LLM_API_KEY` (Bearer token) | `NVIDIA_API_KEY` (`nvapi-...`) | Your paid key in `.env` |
+| **Default camp model** | `gemma4:31b` | `minimax-m2` | (user picks from catalog) | (you pick) |
+| **Models** | Any Ollama model on the Thor | NRP catalog ([model matrix](https://nrp.ai/documentation/userdocs/ai/llm-managed/models/)) | NVIDIA catalog only | Vendor catalog |
+| **Cost / limits** | Shared Thor GPU; may feel slower | NRP fair-use policy | ~**40 requests/min** (plan for it) | Per-token billing |
 
 ---
 
@@ -854,11 +904,10 @@ hermes model
 
 Select the appropriate provider:
 
-- **`local-sage-thor`** — Thor + Ollama (`gemma4:31b`)
-- **`nrp`** — NRP Managed LLMs (`minimax-m2` default)
-- **NVIDIA NIM** — NVIDIA Build hosted APIs
-
-If using the camp profile, you can also edit `~/.hermes/profiles/sage/.env` and `config.yaml` directly.
+- **`local-sage-thor`** — 1. Thor + Ollama (`gemma4:31b`)
+- **NVIDIA NIM** — 2. NVIDIA Build hosted APIs (rate-limited; ~40 req/min)
+- **`nrp`** — 3. NRP Managed LLMs (`minimax-m2` default)
+- Other / commercial providers — 4. optional paid APIs (your key, your bill)
 
 ---
 
