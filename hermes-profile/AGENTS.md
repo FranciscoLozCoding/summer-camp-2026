@@ -4,41 +4,46 @@ This profile **requires** a knowledge graph at `graphify-out/` over `skills/` + 
 
 When the user types `/graphify`, use the bundled **`graphify`** skill before doing anything else. If the user wants to **rebuild incrementally** after the graph exists, use that skill before doing anything else.
 
-**Do not** look for or invent a `scripts/setup-graphify.sh`. Camp Graphify is driven by skill **`graphify`** (`/graphify <path-to-profile>`), which is more flexible than a one-off shell script.
+**Do not** look for or invent a `scripts/setup-graphify.sh`. Camp Graphify is driven by skill **`graphify`**, which is more flexible than a one-off shell script.
+
+### Where the live graph lives (non-negotiable)
+
+**Always build, update, and query the graph under the installed Hermes profile:**
+
+```text
+~/.hermes/profiles/sage/
+```
+
+That is where Hermes loads skills/docs for `sage`. Put `graphify-out/` and `.venv-graphify/` **there**.
+
+**Do not** run `/graphify` against the git clone (`…/summer-camp-2026/hermes-profile`). The clone is only for `hermes profile install` / `update` and for instructors packaging `graphify-baseline.tar.gz` into the distribution. A graph under the clone is **not** what the running agent uses.
 
 ### Camp rule — discover skills and docs through the graph
 
 This Hermes profile ships a large skill/doc corpus (Sage/Waggle, Hugging Face, NVIDIA Jetson, …). **Do not** mass-read the skills tree to find which skill or reference to use.
 
 Rules:
-- For any question about **which skill, which reference, which doc, architecture, or how things connect** in this profile: first run `graphify query "<question>"` when `graphify-out/graph.json` exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts.
-- **CWD is usually `$HOME` (e.g. `/root`), not the profile.** Always pass the **profile absolute path** to `/graphify` (never assume `.` is the profile).
+- For any question about **which skill, which reference, which doc, architecture, or how things connect** in this profile: first run `graphify query "<question>"` when `graphify-out/graph.json` exists under the **installed profile**. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts.
+- **CWD is usually `$HOME` (e.g. `/root`), not the profile.** Always pass `~/.hermes/profiles/sage` (absolute) to `/graphify` — never assume `.` is the profile, and never use the camp repo path for day-to-day Graphify.
 
 ### Build / update with `/graphify` + `.venv-graphify` + optional tarball
 
 | Situation | What to use |
 |-----------|-------------|
-| No `graphify-out/graph.json` yet | Unpack `graphify-baseline.tar.gz` if present (fast); else `/graphify <profile>` |
-| Graph exists; query / navigate | skill **`graphify`** → `query` / `path` / `explain` |
-| Graph exists; added/changed skills or docs | `/graphify <profile> --update` |
-| Need a **from-scratch** rebuild | `/graphify <profile>` again (full pipeline; not for incremental adds) |
+| No `graphify-out/graph.json` yet | Unpack `graphify-baseline.tar.gz` in `~/.hermes/profiles/sage` if present (fast); else `/graphify ~/.hermes/profiles/sage` |
+| Graph exists; query / navigate | skill **`graphify`** → `query` / `path` / `explain` (from that profile root) |
+| Graph exists; added/changed skills or docs | `/graphify ~/.hermes/profiles/sage --update` |
+| Need a **from-scratch** rebuild | `/graphify ~/.hermes/profiles/sage` again (full pipeline; not for incremental adds) |
 
 #### Always use or create `.venv-graphify`
 
-Install Graphify into **`.venv-graphify/`** at the **profile root**. Do **not** start with `which graphify` / `uv tool` / system `pip` (hangs or PEP 668). Hermes CWD is often `$HOME`.
+Install Graphify into **`.venv-graphify/`** at the **installed profile root**. Do **not** start with `which graphify` / `uv tool` / system `pip` (hangs or PEP 668). Hermes CWD is often `$HOME`.
 
 ```bash
-# Resolve profile root:
-PROFILE=""
-for d in \
-  "${HERMES_HOME:-$HOME/.hermes}/profiles/sage" \
-  "$HOME/.hermes/profiles/sage" \
-  "$HOME/summer-camp-2026/hermes-profile" \
-  /root/summer-camp-2026/hermes-profile
-do
-  if [ -d "$d/skills/graphify" ] || [ -f "$d/graphify-baseline.tar.gz" ]; then PROFILE="$d"; break; fi
-done
-[ -n "$PROFILE" ] || { echo "ERROR: sage profile root not found"; exit 1; }
+# Installed profile only (not the git clone):
+PROFILE="${HERMES_HOME:-$HOME/.hermes}/profiles/sage"
+[ -d "$PROFILE/skills/graphify" ] || PROFILE="$HOME/.hermes/profiles/sage"
+[ -d "$PROFILE/skills/graphify" ] || { echo "ERROR: installed sage profile not found at $PROFILE"; exit 1; }
 cd "$PROFILE"
 
 # Create venv if missing, then install CLI:
@@ -59,12 +64,12 @@ if [ ! -f graphify-out/graph.json ] && [ -f graphify-baseline.tar.gz ]; then
 fi
 ```
 
-Then in Hermes (pass the absolute profile path — CWD is often `$HOME`):
+Then in Hermes (absolute installed-profile path — CWD is often `$HOME`):
 
 ```text
-/graphify /path/to/hermes-profile
+/graphify ~/.hermes/profiles/sage
 # after skills/docs change with an existing graph:
-/graphify /path/to/hermes-profile --update
+/graphify ~/.hermes/profiles/sage --update
 ```
 
 Use `"$GRAPHIFY" query …` or `"$PYTHON" -c "…"` for skill bash blocks — not system `python3`.
@@ -88,6 +93,6 @@ Camp procedure detail: `skills/sage-waggle/references/graphify-guide.md`.
 - Dirty `graphify-out/` files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip if the task is about stale/incorrect graph output, or the user explicitly says not to use it.
 - If `graphify-out/wiki/index.md` exists, use it for broad navigation instead of raw source browsing.
 - Read `graphify-out/GRAPH_REPORT.md` only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying profile skill/doc files in this session, run `/graphify <profile> --update` via **`.venv-graphify`** (not a full rebuild unless starting over).
+- After modifying profile skill/doc files in this session, run `/graphify ~/.hermes/profiles/sage --update` via **`.venv-graphify`** (not a full rebuild unless starting over).
 - Then load the **named** skill (`/skill sage-waggle`, `/skill jetson-llm-serve`, …) and follow it. Graphify finds; the skill teaches procedures.
 - Still use Sage MCP for live nodes/data/jobs; Graphify does not replace MCP.

@@ -2,24 +2,26 @@
 
 [Graphify](https://github.com/Graphify-Labs/graphify) is **required** on this Hermes profile. The profile ships ~250 skills and ~1.8K markdown files; the agent must discover the right skill/ref via the knowledge graph, not by grepping the tree.
 
-There is **no** camp setup shell script. Use the bundled skill **`graphify`** (`/graphify <path-to-profile>`) — it is more flexible and already includes the procedures for install, extract, update, query, path, and explain.
+There is **no** camp setup shell script. Use the bundled skill **`graphify`**.
+
+**Live graph location:** always `~/.hermes/profiles/sage/` (the installed Hermes profile). That is where Hermes loads skills for `sage`. **Do not** build or update day-to-day graphs under the git clone (`…/summer-camp-2026/hermes-profile`) — the clone is only for install/`hermes profile update` and for instructors shipping `graphify-baseline.tar.gz`.
 
 | | |
 |--|--|
 | **Upstream** | <https://github.com/Graphify-Labs/graphify> |
-| **Bundled skill** | `skills/graphify/` — `/graphify <path-to-profile>` |
+| **Bundled skill** | `skills/graphify/` — `/graphify ~/.hermes/profiles/sage` |
 | **Always-on rules** | profile `AGENTS.md` |
 | **Camp baseline** | `graphify-baseline.tar.gz` (optional fast init for `graphify-out/`) |
 | **Corpus** | `skills/` + `docs/` (see `.graphifyignore`) |
 | **PyPI** | `graphifyy` (CLI: `graphify`) |
-| **Venv (required)** | **`.venv-graphify/`** at profile root — create if missing; always use for CLI/`import graphify` |
+| **Venv (required)** | **`.venv-graphify/`** under `~/.hermes/profiles/sage` — create if missing |
 
 ## Agent protocol (non-negotiable)
 
-1. If `graphify-out/graph.json` exists → skill **`graphify`**: `query` / `path` / `explain` **before** mass-reading skills.
-2. **Always use or create `.venv-graphify`.** Prefer `$PROFILE/.venv-graphify/bin/graphify` and `$PROFILE/.venv-graphify/bin/python`. Do **not** start with `which graphify` / `uv tool` / system `pip`.
-3. If the graph is **missing** → unpack `graphify-baseline.tar.gz` if present, else **`/graphify <absolute-path-to-profile>`** (full build; can be slow on Ollama running locally).
-4. If the graph exists and files were **added or changed** → **`/graphify <absolute-path-to-profile> --update`**. Do **not** full-rebuild for incremental adds.
+1. If `~/.hermes/profiles/sage/graphify-out/graph.json` exists → skill **`graphify`**: `query` / `path` / `explain` **before** mass-reading skills.
+2. **Always use or create `.venv-graphify`** under the installed profile. Do **not** start with `which graphify` / `uv tool` / system `pip`.
+3. If the graph is **missing** → unpack `graphify-baseline.tar.gz` in `~/.hermes/profiles/sage` if present, else **`/graphify ~/.hermes/profiles/sage`** (full build; can be slow on Ollama).
+4. If the graph exists and files were **added or changed** → **`/graphify ~/.hermes/profiles/sage --update`**. Do **not** full-rebuild for incremental adds.
 5. Load the **specific** skill the graph points to (`sage-waggle`, `jetson-llm-serve`, `hf-cli`, …).
 6. Use Sage / HF MCP for live data; Graphify indexes **this profile’s** skills and docs only.
 
@@ -27,12 +29,12 @@ There is **no** camp setup shell script. Use the bundled skill **`graphify`** (`
 
 After `hermes profile install ./hermes-profile --name sage --alias`:
 
-**Hermes CWD is usually `$HOME`.** Always pass an **absolute profile path** to `/graphify`.
+**Hermes CWD is usually `$HOME`.** Always pass **`~/.hermes/profiles/sage`** (absolute) to `/graphify` — not the camp repo path.
 
-### 1. Create (or reuse) the Graphify venv
+### 1. Create (or reuse) the Graphify venv on the installed profile
 
 ```bash
-cd ~/.hermes/profiles/sage   # or your clone of hermes-profile/
+cd ~/.hermes/profiles/sage
 
 if [ ! -x .venv-graphify/bin/python ]; then
   python3 -m venv .venv-graphify
@@ -55,20 +57,18 @@ test -f graphify-out/graph.json && echo "graph ok"
 If there is still no `graph.json`, in a Hermes session:
 
 ```text
-/graphify /path/to/hermes-profile
+/graphify ~/.hermes/profiles/sage
 ```
-
-Examples: `$HOME/.hermes/profiles/sage` or `$HOME/summer-camp-2026/hermes-profile`.
 
 **Expect:** Full semantic extract over ~1.8K files is slow and shares VRAM with Ollama chat. Prefer the baseline tarball.
 
 ### Updating an existing graph
 
 ```text
-/graphify /path/to/hermes-profile --update
+/graphify ~/.hermes/profiles/sage --update
 ```
 
-Or from the profile root with the venv CLI:
+Or from the installed profile with the venv CLI:
 
 ```bash
 cd ~/.hermes/profiles/sage
@@ -94,7 +94,7 @@ These matter when building/updating **without** (or beyond) the baseline tarball
 Manual extract (only if you need the CLI outside Hermes):
 
 ```bash
-cd /path/to/hermes-profile
+cd ~/.hermes/profiles/sage
 source .venv-graphify/bin/activate
 
 export OLLAMA_BASE_URL=http://127.0.0.1:11434/v1

@@ -8,7 +8,7 @@ Install on your Thor following [hermes-agent.md — Step 3A](../hermes-agent.md#
 
 ```text
 hermes-profile/
-├── distribution.yaml    # manifest (name: sage, version 1.0.7)
+├── distribution.yaml    # manifest (name: sage, version 1.1.0)
 ├── SOUL.md              # agent personality + Graphify-first discovery rules
 ├── AGENTS.md            # always-on: query graphify-out/ before grepping skills
 ├── config.yaml          # Ollama default + NRP provider pre-wired (minimax-m2)
@@ -35,7 +35,7 @@ hermes-profile/
 - Hermes Agent installed on your Thor ([Part 1, Step 2](../hermes-agent.md#step-2--install-hermes-cli)) — choose **Blank Slate**
 - Ollama running on the Thor with at least one model (e.g. `gemma4:31b`) — also required to **build** the Graphify skills/docs graph
 - Your own Linux account on the assigned Thor blade
-- **Graphify** — required after profile install. Create/use **`.venv-graphify`**, unpack **`graphify-baseline.tar.gz`** if present, otherwise run **`/graphify <path-to-profile>`**. Ongoing query/update → skill **`graphify`**. Guide: `skills/sage-waggle/references/graphify-guide.md`
+- **Graphify** — required after profile install. Create/use **`.venv-graphify`** and `graphify-out/` under **`~/.hermes/profiles/sage`** (not the git clone). Unpack **`graphify-baseline.tar.gz`** if present, otherwise `/graphify ~/.hermes/profiles/sage`. Ongoing → skill **`graphify`**. Guide: `skills/sage-waggle/references/graphify-guide.md`
 
 ### Thor tips
 
@@ -46,7 +46,7 @@ hermes-profile/
 ## Install
 
 ```bash
-git clone https://github.com/FranciscoLozCoding/summer-camp-2026.git
+git clone https://github.com/waggle-sensor/summer-camp-2026.git
 cd summer-camp-2026
 hermes profile install ./hermes-profile --name sage --alias
 hermes profile use sage
@@ -93,7 +93,7 @@ The skill knows *how* Sage works, but you need your own access to touch nodes an
 6. **Hugging Face MCP** (optional) — endpoint `https://huggingface.co/mcp` ([docs](https://huggingface.co/docs/hub/en/agents-mcp)). In `mcp.json` as `huggingface` with `enabled: false` until you add an HF token; configure tools at [settings/mcp](https://huggingface.co/settings/mcp) — details in `skills/sage-waggle/references/huggingface-mcp-server.md`.
 7. **Hugging Face skills** — vendored from [huggingface/skills](https://github.com/huggingface/skills) into `skills/` (`hf-cli`, `huggingface-*`, `trl-training`, …). Start with `/skill hf-cli`. Full list: `skills/sage-waggle/references/huggingface-skills-index.md`.
 8. **NVIDIA skills** — vendored from [NVIDIA/skills](https://github.com/NVIDIA/skills) (~230 skills: Jetson, DeepStream, TAO, cuOpt, NeMo, …). Discover via Graphify; Thor often uses `jetson-*`. Catalog: `skills/sage-waggle/references/nvidia-skills-index.md`. Docs: [docs.nvidia.com/skills](https://docs.nvidia.com/skills). Also `/skill nvidia-skill-finder`.
-9. **Graphify (required)** — knowledge graph over `skills/` + `docs/`. Bundled skill `skills/graphify/` + `AGENTS.md`. Ships `graphify-baseline.tar.gz`; create/use `.venv-graphify`, unpack the tarball if present, else `/graphify <profile>`. Ongoing → skill **`graphify`** (`query` / `--update`). Guide: `skills/sage-waggle/references/graphify-guide.md`. Upstream: [Graphify-Labs/graphify](https://github.com/Graphify-Labs/graphify).
+9. **Graphify (required)** — knowledge graph over `skills/` + `docs/` on the **installed** profile `~/.hermes/profiles/sage/` (not under the camp git clone). Bundled skill `skills/graphify/` + `AGENTS.md`. Ships `graphify-baseline.tar.gz`; create/use `.venv-graphify`, unpack the tarball if present, else `/graphify ~/.hermes/profiles/sage`. Ongoing → `/graphify ~/.hermes/profiles/sage --update`. Guide: `skills/sage-waggle/references/graphify-guide.md`. Upstream: [Graphify-Labs/graphify](https://github.com/Graphify-Labs/graphify).
 10. **Milvus SDK Code Helper** — `https://sdk.milvus.io/mcp/` ([docs](https://milvus.io/docs/milvus-sdk-helper-mcp.md)), pre-enabled as `sdk-code-helper`. Camp default runtime: **[Milvus Lite](https://milvus.io/docs/milvus_lite.md)** (local `.db`), not a full Milvus server. See `skills/sage-waggle/references/milvus-sdk-helper-mcp.md`.
 
 See `skills/sage-waggle/references/mcp-tools.md` (Sage), `github-mcp-server.md` (GitHub), `huggingface-mcp-server.md` + `huggingface-skills-index.md` (Hugging Face), `nvidia-skills-index.md` (NVIDIA), `graphify-guide.md` (Graphify), and `milvus-sdk-helper-mcp.md` (Milvus).
@@ -109,7 +109,7 @@ sage                                         # or: hermes -p sage
 
 Ask: **"Using the graphify graph, which skill and references cover the Sage ECR /proc/acpi build failure and the workaround?"**
 
-The agent should `graphify query` (or read `GRAPH_REPORT.md`), then land on **`sage-waggle`** / ECR refs — not invent answers by grepping randomly. If the graph is missing, unpack `graphify-baseline.tar.gz` or run `/graphify <profile>`. If the graph exists and skills/docs changed, use `/graphify <profile> --update`.
+The agent should `graphify query` (or read `GRAPH_REPORT.md`), then land on **`sage-waggle`** / ECR refs — not invent answers by grepping randomly. If the graph is missing, unpack `graphify-baseline.tar.gz` under `~/.hermes/profiles/sage` or run `/graphify ~/.hermes/profiles/sage`. If the graph exists and skills/docs changed, use `/graphify ~/.hermes/profiles/sage --update`.
 
 ## Your first task (guided walkthrough)
 
@@ -150,15 +150,16 @@ cd ~/.hermes/profiles/sage
 # After skill/doc updates with an existing graph:
 # /graphify ~/.hermes/profiles/sage --update
 # Start-from-scratch (rare): /graphify ~/.hermes/profiles/sage
-# Instructor: refresh shipped baseline after a full rebuild:
+# Instructor: refresh shipped baseline after rebuilding on the installed profile,
+# then copy graphify-out/ into the distribution checkout before packing:
 # tar -czf graphify-baseline.tar.gz graphify-out
 ```
 
-Replaces distribution-owned files (SOUL, AGENTS, skills, mcp.json, docs). **Preserves** your `config.yaml` tweaks and all user data (memories, sessions, `.env`). Pass `--force-config` only to reset config to the distribution default. Refresh `graphify-out/` with `/graphify … --update` after updates.
+Replaces distribution-owned files (SOUL, AGENTS, skills, mcp.json, docs). **Preserves** your `config.yaml` tweaks and all user data (memories, sessions, `.env`). Pass `--force-config` only to reset config to the distribution default. Refresh the **installed** profile graph with `/graphify ~/.hermes/profiles/sage --update` after updates (not the git clone).
 
 ## Author / versioning
 
-- Manifest: `distribution.yaml` (`name: sage`, `version: 1.0.7`)
+- Manifest: `distribution.yaml` (`name: sage`, `version: 1.1.0`)
 - Tag releases in git (`git tag v1.0.0`) for version tracking
 - See the [Profile Distributions author guide](https://hermes-agent.nousresearch.com/docs/user-guide/profile-distributions#for-authors-publishing-a-distribution)
 
