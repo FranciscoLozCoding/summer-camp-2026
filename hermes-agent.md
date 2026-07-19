@@ -151,28 +151,11 @@ hermes profile install ./hermes-profile --name sage --alias
 hermes profile use sage
 cp ~/.hermes/profiles/sage/.env.EXAMPLE ~/.hermes/profiles/sage/.env
 # Edit .env if needed — add NVIDIA_API_KEY (nvapi-...) for Part 2; leave blank for Thor+Ollama
-
-# Required — Graphify: venv + optional baseline tarball; then skill `/graphify`
-cd ~/.hermes/profiles/sage
-if [ ! -x .venv-graphify/bin/python ]; then
-  python3 -m venv .venv-graphify
-  .venv-graphify/bin/pip install -U pip
-  .venv-graphify/bin/pip install -U 'graphifyy[ollama]'
-fi
-if [ ! -f graphify-out/graph.json ] && [ -f graphify-baseline.tar.gz ]; then
-  tar -xzf graphify-baseline.tar.gz
-fi
-test -f graphify-out/graph.json && echo "graph ok"
-# If still missing: in Hermes run  /graphify ~/.hermes/profiles/sage
-# After skill/doc changes:         /graphify ~/.hermes/profiles/sage --update
-
 hermes profile info sage
 hermes doctor
 ```
 
-> **Graphify is required.** The profile ships many skills (Sage, Hugging Face, NVIDIA) plus a prebuilt `graphify-baseline.tar.gz`. Hermes must discover the right skill via `graphify-out/` under the **installed** profile `~/.hermes/profiles/sage/` (`AGENTS.md` + skill `graphify`) — **not** under the `summer-camp-2026` git clone. See [`hermes-profile/skills/sage-waggle/references/graphify-guide.md`](hermes-profile/skills/sage-waggle/references/graphify-guide.md). Unpack the tarball in `~/.hermes/profiles/sage`. Always use **`.venv-graphify`** there. For local Ollama extracts: `OLLAMA_BASE_URL` must end with `/v1`, leave `GRAPHIFY_OLLAMA_NUM_CTX` unset. After the graph exists, use `/graphify ~/.hermes/profiles/sage --update` for incremental adds.
-
-Launch with `sage` or `hermes -p sage`.
+Launch with `hermes`.
 
 ### Pull camp config updates
 
