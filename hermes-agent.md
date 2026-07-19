@@ -123,7 +123,7 @@ The camp maintains a Hermes **profile distribution** in this repo at [`hermes-pr
 | SOUL.md, AGENTS.md, config.yaml, skills/, docs/, scripts/, mcp.json | `memories/`, `sessions/`, `auth.json`, `.env` |
 | Updated via `hermes profile update` | Preserved across updates — your brain stays isolated |
 
-> see [agent-knowledge-graph](hermes-profile/agent-knowledge-graph.html) for a visual representation of the agent's baseline knowledge. As your agent learns, the graph will be updated with new knowledge in path-to-profile/graphify-out/graph.html.
+> see [agent-knowledge-graph](hermes-profile/agent-knowledge-graph.html) for a visual representation of the agent's baseline knowledge. As your agent learns, the live graph updates under **`~/.hermes/profiles/sage/graphify-out/`** (e.g. `graph.html`) — not under the camp git clone.
 
 ### Install from local clone (recommended)
 
@@ -178,7 +178,7 @@ hermes profile info sage
 hermes doctor
 ```
 
-> **Graphify is required.** The profile ships many skills (Sage, Hugging Face, NVIDIA) plus a prebuilt `graphify-baseline.tar.gz`. Hermes must discover the right skill via `graphify-out/` (`AGENTS.md` + skill `graphify`). See [`hermes-profile/skills/sage-waggle/references/graphify-guide.md`](hermes-profile/skills/sage-waggle/references/graphify-guide.md). Prefer unpacking the tarball; otherwise `/graphify <absolute-path-to-profile>`. Always use **`.venv-graphify`**. For local Ollama extracts: `OLLAMA_BASE_URL` must end with `/v1`, leave `GRAPHIFY_OLLAMA_NUM_CTX` unset. After the graph exists, use skill **`graphify`** (`query` / `--update`) — not a full rebuild for incremental adds.
+> **Graphify is required.** The profile ships many skills (Sage, Hugging Face, NVIDIA) plus a prebuilt `graphify-baseline.tar.gz`. Hermes must discover the right skill via `graphify-out/` under the **installed** profile `~/.hermes/profiles/sage/` (`AGENTS.md` + skill `graphify`) — **not** under the `summer-camp-2026` git clone. See [`hermes-profile/skills/sage-waggle/references/graphify-guide.md`](hermes-profile/skills/sage-waggle/references/graphify-guide.md). Unpack the tarball in `~/.hermes/profiles/sage`. Always use **`.venv-graphify`** there. For local Ollama extracts: `OLLAMA_BASE_URL` must end with `/v1`, leave `GRAPHIFY_OLLAMA_NUM_CTX` unset. After the graph exists, use `/graphify ~/.hermes/profiles/sage --update` for incremental adds.
 
 Launch with `sage` or `hermes -p sage`.
 
@@ -799,7 +799,7 @@ cat ~/.hermes/profiles/sage/memories/MEMORY.md   # if you wrote memories
 /graphify ~/.hermes/profiles/sage --update
 ```
 
-(Use your real profile path if it differs — Hermes CWD is often `$HOME`, so pass an absolute path.)
+(Use your real installed profile path if it differs — Hermes CWD is often `$HOME`, so pass an absolute path. Do **not** point this at the `summer-camp-2026` git clone.)
 
 3. **Export your brain** to a tarball:
 
@@ -939,17 +939,23 @@ A practical guide for using context, compute, and provider quotas responsibly du
 
 # Updating The Knowledge Graph
 
-After adding/changing skills or docs **with a graph already built** → use skill **`graphify`** with **`.venv-graphify`** (create the venv if missing). Prefer the absolute **profile** path (Hermes CWD is often `$HOME`). Full `/graphify <profile>` again is start-from-scratch only — use `--update` for incremental adds.
+After adding/changing skills or docs **with a graph already built** → refresh the graph on the **installed** profile (where Hermes actually runs). Create `.venv-graphify` under that path if missing. Hermes CWD is often `$HOME`, so always pass an absolute path.
+
+**Use this path (students / day-to-day agent):**
 
 ```text
-/graphify /path/to/hermes-profile --update
+/graphify ~/.hermes/profiles/sage --update
 ```
 
-Examples: `$HOME/.hermes/profiles/sage` or `$HOME/summer-camp-2026/hermes-profile`.
+Do **not** point `/graphify` at `…/summer-camp-2026/hermes-profile` for normal updates — that clone is not the live agent home. A graph built only in the repo will not be what `sage` queries.
 
-To refresh the shipped camp baseline after a rebuild, from the profile root:
+Full `/graphify ~/.hermes/profiles/sage` again is start-from-scratch only — use `--update` for incremental adds.
+
+**Instructors only** — after rebuilding the graph on a staging profile (or copying an updated `graphify-out/` into the distribution tree), refresh the shipped camp baseline in the git repo:
 
 ```bash
+# From the distribution checkout (summer-camp-2026/hermes-profile), after copying
+# a fresh graphify-out/ from ~/.hermes/profiles/sage (or rebuilding there for packaging):
 cp graphify-out/graph.html agent-knowledge-graph.html
 tar -czf graphify-baseline.tar.gz graphify-out
 git add agent-knowledge-graph.html graphify-baseline.tar.gz
