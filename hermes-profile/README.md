@@ -8,7 +8,7 @@ Install on your Thor following [hermes-agent.md — Step 3A](../hermes-agent.md#
 
 ```text
 hermes-profile/
-├── distribution.yaml    # manifest (name: sage, version 1.0.7)
+├── distribution.yaml    # manifest (name: sage, version 1.1.0)
 ├── SOUL.md              # agent personality + Graphify-first discovery rules
 ├── AGENTS.md            # always-on: query graphify-out/ before grepping skills
 ├── config.yaml          # Ollama default + NRP provider pre-wired (minimax-m2)
@@ -158,7 +158,7 @@ Replaces distribution-owned files (SOUL, AGENTS, skills, mcp.json, docs). **Pres
 
 ## Author / versioning
 
-- Manifest: `distribution.yaml` (`name: sage`, `version: 1.0.7`)
+- Manifest: `distribution.yaml` (`name: sage`, `version: 1.1.0`)
 - Tag releases in git (`git tag v1.0.0`) for version tracking
 - See the [Profile Distributions author guide](https://hermes-agent.nousresearch.com/docs/user-guide/profile-distributions#for-authors-publishing-a-distribution)
 
