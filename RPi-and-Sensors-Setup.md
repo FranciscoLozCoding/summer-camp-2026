@@ -22,7 +22,8 @@ This guide explains how to set up a weather station using an industrial Raspberr
 
 ## System Architecture
 
-<img width="1920" height="1500" alt="3" src="https://github.com/user-attachments/assets/1e1eab7e-6917-4344-8e68-15314522920d" />
+<img width="1920" height="1500" alt="Your paragraph text (1920 x 1500 px) (1)" src="https://github.com/user-attachments/assets/8d698b19-fe44-4cf1-86bc-b2e92509081c" />
+
 
 ---
 
@@ -93,65 +94,14 @@ sudo apt-get install picocom
 **1.4.** Test the serial connection by running:
 
 ```bash
-picocom -b 9600 /dev/com4
+picocom -b 9600 /dev/com3
 ```
 
-<!-- FLAG: `/dev/com4` is unusual on Linux — serial ports are typically `/dev/ttyS0`, `/dev/ttyUSB0`, or `/dev/ttyAMA0`. This may be correct for the ED-IPC2400's specific port naming, but worth double-checking before participants run into errors. -->
+<!-- FLAG: `/dev/com3` is unusual on Linux — serial ports are typically `/dev/ttyS0`, `/dev/ttyUSB0`, or `/dev/ttyAMA0`. This may be correct for the ED-IPC2400's specific port naming, but worth double-checking before participants run into errors. -->
 
 A successful connection should look like this:
 
 <img width="994" height="580" alt="Picocom connection screenshot" src="https://github.com/user-attachments/assets/6362a947-da1e-4e9c-b1fa-5a2f0e723ead" />
-
----
-
-## Part 3 — Communicating Between the RPi and the Sage Blade
-
-This section covers configuring the RPi to expose the weather sensor's serial data over the network so the Sage blade can read it.
-
-### Step 2 — Configure ser2net on the RPi
-
-**2.1.** Install `ser2net` on the RPi:
-
-```bash
-sudo apt update
-sudo apt install ser2net
-```
-
-**2.2.** Open the `ser2net` configuration file:
-
-```bash
-sudo nano /etc/ser2net.yaml
-```
-
-**2.3.** Add the following connection profile to the bottom of the file. This defines the network accepter (the TCP port other devices connect to) and the serial connector (the physical port the sensor is on):
-
-```yaml
-connection: &met_one_sensor
-    accepter: tcp,4000
-    connector: serialdev,/dev/com4,9600N81,local
-    options:
-        kickolduser: true
-```
-
-> **Note:** Make sure port `4000` is not already in use on the RPi before adding this. You can use a different port number if needed.
-
-**2.4.** Save and exit the file (`Ctrl+X`, then `Y`, then `Enter`), then restart the `ser2net` service to apply the changes:
-
-```bash
-sudo systemctl restart ser2net
-```
-
-**2.5.** Confirm the port is open and listening:
-
-```bash
-sudo ss -ltpn | grep 4000
-```
-
-<!-- QUESTION: What should the output of this command look like when it's working correctly? Adding an example output here (similar to the picocom screenshot) would help participants know whether their setup succeeded. -->
-
----
-
-*More steps coming — work in progress.*
 
 ---
 
