@@ -783,9 +783,75 @@ cat ~/.hermes/profiles/sage/memories/MEMORY.md   # if you wrote memories
 hermes profile export sage -o ~/sage-brain-export.tar.gz
 ```
 
-4. **Transfer the tarball** to an instructor — never post it in public channels.
+4. **Upload the tarball** to your personal `sage-summer-camp-2026` repo (not the shared camp repo):
 
-5. **Instructors will extract shareable knowledge** and open PRs on your behalf.
+```bash
+cd ~/sage-summer-camp-2026   # or wherever you cloned your personal repo
+mkdir -p brain-exports
+cp ~/sage-brain-export.tar.gz brain-exports/
+git add brain-exports/sage-brain-export.tar.gz
+git commit -m "Add Hermes sage brain export"
+git push
+```
+
+5. **Instructors will pull from your repo**, extract shareable knowledge, and open PRs into [`hermes-profile/`](hermes-profile/) on your behalf.
+
+### How to contribue [Claude Code]
+
+Claude Code has no `hermes profile export`. Build a redacted `claude_backup/` folder from transcripts and Sage-related skills, then upload it to your personal repo.
+
+1. **Create the backup folders:**
+
+```bash
+mkdir -p ~/claude_backup/transcripts ~/claude_backup/skills
+```
+
+2. **Export chat transcripts** from each useful Claude Code session (camp debugging, skill work, recipes worth keeping). In Claude Code:
+
+```text
+/export ~/claude_backup/transcripts/<short-name>.md
+```
+
+Pass a path so the file lands under `claude_backup/transcripts/` (without a path, `/export` opens a menu for clipboard or a local save). Repeat for each session worth contributing.
+
+3. **Collect Sage-related skills.** In a Claude Code session, paste this prompt:
+
+```text
+Use your shell tool to find all sage-related skill files in ~/.claude/skills/ and ./.claude/skills/.
+Read their contents and copy them into ~/claude_backup/skills/, preserving each skill's directory structure.
+Skip unrelated skills. If a skill is a symlink, copy the real files (not the symlink alone).
+```
+
+4. **Redact secrets.** Still in Claude Code, paste this prompt:
+
+```text
+Look through ~/claude_backup/. Scan all transcripts and skill files for sensitive data
+such as API keys, passwords, tokens, private URLs with credentials, or .env contents.
+Replace each secret with [REDACTED] so this folder is safe to commit.
+Do not delete useful debugging content — only redact secrets.
+```
+
+5. **Spot-check**, then package the backup:
+
+```bash
+# Quick sanity check — should find nothing that looks like a live key
+rg -n 'sk-|api[_-]?key|token|password|Bearer ' ~/claude_backup || true
+
+tar -czf ~/claude-brain-export.tar.gz -C ~ claude_backup
+```
+
+6. **Upload the tarball** to your personal `sage-summer-camp-2026` repo (not the shared camp repo):
+
+```bash
+cd ~/sage-summer-camp-2026   # or wherever you cloned your personal repo
+mkdir -p brain-exports
+cp ~/claude-brain-export.tar.gz brain-exports/
+git add brain-exports/claude-brain-export.tar.gz
+git commit -m "Add Claude Code brain export"
+git push
+```
+
+7. **Instructors will pull from your repo**, extract shareable knowledge, and open PRs into [`hermes-profile/`](hermes-profile/) on your behalf.
 
 ## Same-machine backup (profile export/import)
 
