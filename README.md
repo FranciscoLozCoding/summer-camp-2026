@@ -133,19 +133,19 @@ A total of 4 devices act as remote sensors that are connected to Sage nodes via 
 
 | Device Name | Location | Sensors |
 |---|---|---|
-| ANLT1 / H00F | Sage Blade Room | TBD |
+| ANLT1 / H00F | Lemont | TBD |
 | H02A | Sage Blade Room | TBD |
 | H02C | Sage Blade Room | TBD |
 | H02D | Sage Blade Room | TBD |
-| H02E | Sage Blade Room | TBD |
-| H02F | Sage Blade Room | TBD |
-| H030 | Sage Blade Room | TBD |
-| H031 | Sage Blade Room | TBD |
-| H032 | Sage Blade Room | TBD |
-| H033 | Sage Blade Room | TBD |
-| H034 | Sage Blade Room | TBD |
+| H02E | Lemont | TBD |
+| H02F | Lemont | TBD |
+| H030 | Lemont | TBD |
+| H031 | Lemont | TBD |
+| H032 | Lemont | TBD |
+| H033 | Lemont | TBD |
+| H034 | Lemont | TBD |
 | H035 | Sage Blade Room | TBD |
-| H037 | Sage Blade Room | TBD |
+| H037 | Lemont | TBD |
 | H038 | Sage Blade Room | TBD |
 | H039 | UIC Blade Room | TBD |
 | H03A | Sage Blade Room | TBD |
