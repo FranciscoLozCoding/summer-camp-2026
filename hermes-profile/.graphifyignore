@@ -28,3 +28,20 @@ skills/_vendor/**
 
 # Keep focusing the graph on skill instructions + references + camp docs
 # (everything else under skills/ and docs/ is still included unless matched above)
+
+# Added by graphify update -- exclude non-skill/doc noise from profile root home/
+home/
+pastes/
+*.lock
+*.db
+*.db-shm
+*.db-wal
+*.sig
+*.tar.gz
+cron/
+logs/
+pastes/
+sessions/
+
+# Hermes files
+.skills_prompt_snapshot.json
