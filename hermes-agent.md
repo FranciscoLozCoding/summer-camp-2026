@@ -1042,6 +1042,12 @@ Do **not** point `/graphify` at `…/summer-camp-2026/hermes-profile` for normal
 
 Full `/graphify ~/.hermes/profiles/sage` again is start-from-scratch only — use `--update` for incremental adds.
 
+To do a code and a llm semantic update then run this on your terminal
+```sh
+graphify extract ~/.hermes/profiles/sage
+```
+>NOTE: add [enviroment variables](https://github.com/Graphify-Labs/graphify#environment-variables) to determine which llm endpoint to use 
+
 **Instructors only** — after rebuilding the graph on a staging profile (or copying an updated `graphify-out/` into the distribution tree), refresh the shipped camp baseline in the git repo:
 
 ```bash
