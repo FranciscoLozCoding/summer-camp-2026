@@ -45,3 +45,7 @@ sessions/
 
 # Hermes files
 .skills_prompt_snapshot.json
+
+# macOS system files
+._*
+.DS_Store
