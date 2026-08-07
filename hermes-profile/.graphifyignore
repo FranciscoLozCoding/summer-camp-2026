@@ -5,6 +5,8 @@
 # Generated graph artifacts (rebuild with `graphify extract`)
 graphify-out/
 **/graphify-out/
+agent-knowledge-graph.html
+graphify-baseline.tar.gz
 
 # Vendor license blobs (not useful as graph nodes)
 skills/_vendor/**
