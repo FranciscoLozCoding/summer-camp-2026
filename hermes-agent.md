@@ -1046,7 +1046,7 @@ To do a code and a llm semantic update then run this on your terminal
 ```sh
 graphify extract ~/.hermes/profiles/sage
 ```
->NOTE: add [enviroment variables](https://github.com/Graphify-Labs/graphify#environment-variables) to determine which llm endpoint to use 
+>NOTE: add [enviroment variables](https://github.com/Graphify-Labs/graphify#environment-variables) to determine which llm endpoint to use. Also the extract command does the incremental updates automatically by analyzing the graphify files. If no graphify files are detected then it will start from scratch.
 
 **Instructors only** — after rebuilding the graph on a staging profile (or copying an updated `graphify-out/` into the distribution tree), refresh the shipped camp baseline in the git repo:
 
