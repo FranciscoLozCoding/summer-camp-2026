@@ -1,11 +1,11 @@
-# Graphify ignore — CURATED overview (agent-knowledge-graph.html).
+# Graphify ignore — FULL codebase (scripts, references, skill code included).
 # Same syntax as .gitignore. Merged with .gitignore — this only excludes more.
 # Upstream: https://github.com/Graphify-Labs/graphify
 #
-# Scope: skill cards / SKILL.md + camp docs. Deep references/ and skill
-# implementation trees are excluded (they explode node/community count).
-# Select with: ./scripts/update_hermes_profile_graphify.sh --scope curated
-# Sibling: .graphifyignore.full for whole-codebase graphs.
+# Scope: broad knowledge graph for agent query / deep exploration.
+# Expect many communities; prefer --scope curated for readable HTML.
+# Select with: ./scripts/update_hermes_profile_graphify.sh --scope full
+# Sibling: .graphifyignore.curated for overview graphs.
 
 # Generated graph artifacts (rebuild with `graphify extract`)
 graphify-out/
@@ -16,58 +16,22 @@ graphify-baseline.tar.gz
 # Vendor license blobs (not useful as graph nodes)
 skills/_vendor/**
 
-# Eval / fixture / implementation trees (AST community noise)
+# Eval / fixture noise (NVIDIA skills ship lots of these)
 **/evals/**
 **/eval/**
-**/scripts/**
-**/validators/**
-**/fixtures/**
-**/tests/**
-**/test/**
-**/examples/**
-**/schemas/**
-**/templates/**
-**/assets/**
-**/prompts/**
-**/references/**
 **/__pycache__/**
 **/*.pyc
 **/.pytest_cache/**
-**/.claude-plugin/**
 
-# Code / config under skills — keep SKILL.md / skill-card.md / camp docs instead
-skills/**/*.py
-skills/**/*.sh
-skills/**/*.ts
-skills/**/*.js
-skills/**/*.jsx
-skills/**/*.tsx
-skills/**/*.go
-skills/**/*.java
-skills/**/*.cu
-skills/**/*.cpp
-skills/**/*.c
-skills/**/*.h
-skills/**/*.hpp
-skills/**/*.yaml
-skills/**/*.yml
-skills/**/*.json
-skills/**/*.toml
-skills/**/*.xml
-skills/**/*.onnx
-skills/**/*.pt
-skills/**/*.engine
-
-# Large / low-signal media
+# Large / low-signal demo assets inside skills
+**/examples/**/datasets/**
+**/examples/**/*.pt
+**/examples/**/*.onnx
+**/examples/**/*.engine
 **/*.mp4
 **/*.mkv
 **/*.wav
 **/*.flac
-**/*.png
-**/*.jpg
-**/*.jpeg
-**/*.gif
-**/*.webp
 
 # Non-skill/doc noise from profile root / agent home
 home/
