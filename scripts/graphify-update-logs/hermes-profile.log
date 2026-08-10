@@ -1,0 +1,113 @@
+==== 2026-08-07T22:01:29Z ====
+CMD: /Users/franciscolozano/miniconda3/envs/hermes/bin/graphify extract /Users/franciscolozano/Git/summer-camp-2026/hermes-profile --backend openai --model google/gemma-4-31B-it --token-budget 50000 --max-concurrency 10 --api-timeout 1800 --resolution 0.3
+PROFILE=/Users/franciscolozano/Git/summer-camp-2026/hermes-profile
+SCOPE=curated
+OPENAI_BASE_URL=http://localhost:8000/v1
+OPENAI_MODEL=google/gemma-4-31B-it
+RESOLUTION=0.3
+
+[graphify extract] scanning /Users/franciscolozano/Git/summer-camp-2026/hermes-profile
+[graphify extract] found 7 code, 776 docs, 1 papers, 0 images
+[graphify extract] 16 file(s) not classified (no supported extension or shebang), skipped: .gitignore, .graphifyignore, .graphifyignore.curated, .graphifyignore.full, Skill Card Generator Card, Skill Card Generator License (+10 more)
+[graphify extract] AST extraction on 7 code files...
+  warning: 4 .tf file(s) contributed nothing to the graph because a dependency is missing: tree_sitter_hcl not installed. Install it with: pip install "graphifyy[terraform]" (#1745)
+[graphify extract] semantic extraction on 777 files via openai...
+[graphify extract] chunk 7/30 done
+[graphify extract] chunk 1/30 done
+[graphify extract] chunk 6/30 done
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/huggingface-llm-trainer/scripts/estimate_cost.py'; the file was not dispatched for extraction
+  _scs(
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/huggingface-llm-trainer/scripts/hf_benchmarks.py'; the file was not dispatched for extraction
+  _scs(
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/huggingface-vision-trainer/scripts/dataset_inspector.py'; the file was not dispatched for extraction
+  _scs(
+[graphify extract] chunk 8/30 done
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/deepstream-generate-pipeline/scripts/generate_pipeline.py'; the file was not dispatched for extraction
+  _scs(
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/deepstream-generate-pipeline/scripts/validate_pipeline.py'; the file was not dispatched for extraction
+  _scs(
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/deepstream-profile-pipeline/scripts/capacity_report.py'; the file was not dispatched for extraction
+  _scs(
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/dicom-metadata-extract/scripts/extract_metadata.py'; the file was not dispatched for extraction
+  _scs(
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/dicom-series-preflight/scripts/preflight_series.py'; the file was not dispatched for extraction
+  _scs(
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/dicom-series-to-volume/scripts/series_to_volume.py'; the file was not dispatched for extraction
+  _scs(
+[graphify extract] chunk 4/30 done
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/deepstream-dev/SKILL.md'; the file was not dispatched for extraction
+  _scs(
+[graphify extract] chunk 3/30 done
+[graphify extract] chunk 5/30 done
+[graphify extract] chunk 2/30 done
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/jetson-customize-pinmux/SKILL.md'; the file was not dispatched for extraction
+  _scs(
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/jetson-promote-image/SKILL.md'; the file was not dispatched for extraction
+  _scs(
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/jetson-init-source/SKILL.md'; the file was not dispatched for extraction
+  _scs(
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/jetson-init-image/SKILL.md'; the file was not dispatched for extraction
+  _scs(
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/jetson-derive-carrier/SKILL.md'; the file was not dispatched for extraction
+  _scs(
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/jetson-customize-uphy/SKILL.md'; the file was not dispatched for extraction
+  _scs(
+[graphify extract] chunk 9/30 done
+[graphify extract] chunk 11/30 done
+[graphify extract] chunk 10/30 done
+[graphify extract] chunk 13/30 done
+[graphify extract] chunk 16/30 done
+[graphify extract] chunk 12/30 done
+[graphify extract] chunk 17/30 done
+[graphify extract] chunk 15/30 done
+[graphify extract] chunk 18/30 done
+[graphify extract] chunk 21/30 done
+[graphify extract] chunk 14/30 done
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/tao-generate-image-grounding/SKILL.md'; the file was not dispatched for extraction
+  _scs(
+[graphify extract] chunk 20/30 done
+[graphify extract] chunk 25/30 done
+[graphify extract] chunk 22/30 done
+[graphify extract] chunk 19/30 done
+[graphify extract] chunk 26/30 done
+[graphify extract] chunk 27/30 done
+[graphify extract] chunk 24/30 done
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/tao-setup-nvidia-gpu-host/scripts/setup-nvidia-gpu-host.sh'; the file was not dispatched for extraction
+  _scs(
+[graphify extract] chunk 23/30 done
+[graphify extract] chunk 28/30 done
+/Users/franciscolozano/miniconda3/envs/hermes/lib/python3.11/site-packages/graphify/llm.py:2315: RuntimeWarning: semantic cache skipped out-of-scope source_file 'skills/vss-summarize-video/SKILL.md'; the file was not dispatched for extraction
+  _scs(
+[graphify extract] chunk 29/30 done
+[graphify extract] chunk 30/30 done
+[graphify] WARNING: dropped 10 out-of-scope node(s) attributed to file(s) not dispatched for extraction: capacity_report.py, dataset_inspector.py, estimate_cost.py, extract_metadata.py, generate_pipeline.py (+5 more). The model mis-attributed them to another corpus file; they were excluded from the graph (#1895).
+[graphify] WARNING: 498/777 dispatched file(s) produced no nodes and are absent from the graph: BENCHMARK.md, skill-card.md, BENCHMARK.md, skill-card.md, BENCHMARK.md (+493 more). The model returned a response but omitted them; a re-run will retry them.
+[graphify] note: node 'skills_deepstream_dev' was extracted twice from 'skills/deepstream-dev/SKILL.md' under different labels — keeping 'DeepStream Dev', dropping 'DeepStream Development Skill'.
+[graphify] WARNING: node 'skills_digital_health_clinical_asr_build' is minted by two different files — keeping 'Clinical ASR Build' from 'skills/digital-health-clinical-asr-setup/SKILL.md', dropping 'Clinical ASR Flywheel Stage 2' from 'skills/digital-health-clinical-asr-build/SKILL.md'. An ID is derived from the source path plus the entity name, so this one does not identify a single entity and the dropped node is lost. To keep them distinct, run 'graphify extract' per subfolder and merge with 'graphify merge-graphs'.
+[graphify] WARNING: node 'skills_digital_health_clinical_asr_eval' is minted by two different files — keeping 'Clinical ASR Eval' from 'skills/digital-health-clinical-asr-eval/SKILL.md', dropping 'Clinical ASR Evaluation' from 'skills/digital-health-clinical-asr-eval/BENCHMARK.md'. An ID is derived from the source path plus the entity name, so this one does not identify a single entity and the dropped node is lost. To keep them distinct, run 'graphify extract' per subfolder and merge with 'graphify merge-graphs'.
+[graphify] note: node 'skills_jetson_promote_image_skill' was extracted twice from 'skills/jetson-promote-image/SKILL.md' under different labels — keeping 'jetson-promote-image', dropping 'jetson-promote-image Skill'.
+[graphify] note: node 'src_megatron_bridge_training_initialize' was extracted twice from 'src/megatron/bridge/training/initialize.py' under different labels — keeping 'initialize.py', dropping 'initialize_model_parallel'.
+[graphify] note: node 'src_megatron_bridge_training_config' was extracted twice from 'src/megatron/bridge/training/config.py' under different labels — keeping 'config.py', dropping 'ConfigContainer'.
+[graphify] note: node 'src_megatron_bridge_training_comm_overlap' was extracted twice from 'src/megatron/bridge/training/comm_overlap.py' under different labels — keeping 'comm_overlap.py', dropping 'CommOverlapConfig'.
+[graphify] WARNING: node 'skills_nemo_rl_session_memory' is minted by two different files — keeping 'Session Memory' from 'skills/nemo-rl-session-memory/SKILL.md', dropping 'nemo-rl-session-memory' from 'skills/nemo-rl-session-memory/skill-card.md'. An ID is derived from the source path plus the entity name, so this one does not identify a single entity and the dropped node is lost. To keep them distinct, run 'graphify extract' per subfolder and merge with 'graphify merge-graphs'.
+[graphify] WARNING: node 'skills_nv_generate_vae_finetune' is minted by two different files — keeping 'NV-Generate-VAE-Finetune' from 'skills/nv-generate-vae-finetune/skill-card.md', dropping 'nv-generate-vae-finetune' from 'skills/nv-generate-vae-finetune/SKILL.md'. An ID is derived from the source path plus the entity name, so this one does not identify a single entity and the dropped node is lost. To keep them distinct, run 'graphify extract' per subfolder and merge with 'graphify merge-graphs'.
+[graphify] WARNING: node 'skills_physical_ai_defect_image_generation' is minted by two different files — keeping 'Physical AI Defect Image Generation' from 'skills/physical-ai-defect-image-generation/BENCHMARK.md', dropping 'Physical AI Defect Image Generation' from 'skills/physical-ai-defect-image-generation/SKILL.md'. An ID is derived from the source path plus the entity name, so this one does not identify a single entity and the dropped node is lost. To keep them distinct, run 'graphify extract' per subfolder and merge with 'graphify merge-graphs'.
+[graphify] note: node 'skills_tao_generate_image_grounding' was extracted twice from 'skills/tao-generate-image-grounding/SKILL.md' under different labels — keeping 'tao-generate-image-grounding', dropping 'TAO Image Grounding Generator'.
+[graphify] WARNING: node 'skills_tao_run_automl_skill' is minted by two different files — keeping 'tao-run-automl' from 'skills/tao-run-automl-deft-pipeline/SKILL.md', dropping 'tao-run-automl' from 'skills/tao-train-action-recognition/SKILL.md'. An ID is derived from the source path plus the entity name, so this one does not identify a single entity and the dropped node is lost. To keep them distinct, run 'graphify extract' per subfolder and merge with 'graphify merge-graphs'.
+[graphify] WARNING: node 'tao_skill_bank_tao_run_automl' is minted by two different files — keeping 'tao-run-automl' from 'skills/tao-train-grounding-dino/SKILL.md', dropping 'tao-run-automl' from 'skills/tao-train-ocdnet/SKILL.md'. An ID is derived from the source path plus the entity name, so this one does not identify a single entity and the dropped node is lost. To keep them distinct, run 'graphify extract' per subfolder and merge with 'graphify merge-graphs'.
+[graphify] WARNING: node 'skills_vss_generate_video_calibration' is minted by two different files — keeping 'vss-generate-video-calibration' from 'skills/vss-generate-video-calibration/BENCHMARK.md', dropping 'vss-generate-video-calibration' from 'skills/vss-generate-video-calibration/SKILL.md'. An ID is derived from the source path plus the entity name, so this one does not identify a single entity and the dropped node is lost. To keep them distinct, run 'graphify extract' per subfolder and merge with 'graphify merge-graphs'.
+[graphify] Deduplicated 2 node(s) (2 exact).
+[graphify extract] wrote /Users/franciscolozano/Git/summer-camp-2026/hermes-profile/graphify-out/graph.json: 410 nodes, 323 edges, 147 communities
+[graphify extract] wrote /Users/franciscolozano/Git/summer-camp-2026/hermes-profile/graphify-out/.graphify_analysis.json
+[graphify extract] tokens: 1,600,200 in / 75,674 out, est. cost (~openai): $0.7612
+[graphify extract] next: run `graphify cluster-only /Users/franciscolozano/Git/summer-camp-2026/hermes-profile` to generate GRAPH_REPORT.md and name communities
+
+==== cluster-only 2026-08-07T22:35:52Z ====
+CMD: /Users/franciscolozano/miniconda3/envs/hermes/bin/graphify cluster-only /Users/franciscolozano/Git/summer-camp-2026/hermes-profile --backend openai --model google/gemma-4-31B-it --resolution 0.3
+
+Loading existing graph...
+Graph: 410 nodes, 323 edges
+Re-clustering...
+Labeling communities...
+[graphify] backed up semantic graph (5 files) -> 2026-08-07/
+Done - 147 communities. GRAPH_REPORT.md, graph.json and graph.html updated.
