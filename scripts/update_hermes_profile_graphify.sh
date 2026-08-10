@@ -12,7 +12,7 @@
 #
 #   OPENAI_BASE_URL=http://localhost:8000/v1 \
 #   OPENAI_API_KEY=not-needed \
-#   OPENAI_MODEL=meta/llama-3.3-70b-instruct \
+#   OPENAI_MODEL=google/gemma-4-31B-it \
 #   ./scripts/update_hermes_profile_graphify.sh
 #
 # NRP ellm override:
@@ -20,6 +20,13 @@
 #   OPENAI_API_KEY=… \
 #   OPENAI_MODEL=minimax-m2 \
 #   ./scripts/update_hermes_profile_graphify.sh
+#
+# Recluster only (skip extract; needs graphify-out/graph.json):
+#   ./scripts/update_hermes_profile_graphify.sh --cluster-only --resolution 1.5
+#
+# Graph scope (copies hermes-profile/.graphifyignore.<scope> → .graphifyignore):
+#   ./scripts/update_hermes_profile_graphify.sh --scope curated --wipe --pack-baseline
+#   ./scripts/update_hermes_profile_graphify.sh --scope full --wipe
 #
 # Do not put API keys in this file.
 set -euo pipefail
@@ -32,24 +39,32 @@ LOG_DIR="$REPO_ROOT/scripts/graphify-update-logs"
 LOG_FILE="$LOG_DIR/hermes-profile.log"
 
 DEFAULT_OPENAI_BASE_URL="http://localhost:8000/v1"
-DEFAULT_MODEL="meta/llama-3.3-70b-instruct"
+DEFAULT_MODEL="google/gemma-4-31B-it"
 DEFAULT_OPENAI_API_KEY="not-needed"
 DEFAULT_BACKEND="openai"
 DEFAULT_TOKEN_BUDGET="25000"
 DEFAULT_MAX_CONCURRENCY="2"
 DEFAULT_API_TIMEOUT="1800"
+DEFAULT_RESOLUTION="1.0"
+DEFAULT_SCOPE="curated"
 
 DRY_RUN=0
 FORCE=0
 WIPE=0
 PACK_BASELINE=0
 SKIP_HEALTH_CHECK=0
+SKIP_CLUSTER=0
+CLUSTER_ONLY=0
+SCOPE="$DEFAULT_SCOPE"
 BACKEND="$DEFAULT_BACKEND"
 MODEL="${OPENAI_MODEL:-$DEFAULT_MODEL}"
 TOKEN_BUDGET="$DEFAULT_TOKEN_BUDGET"
 MAX_CONCURRENCY="$DEFAULT_MAX_CONCURRENCY"
 API_TIMEOUT="$DEFAULT_API_TIMEOUT"
+RESOLUTION="$DEFAULT_RESOLUTION"
 GRAPHIFY_BIN="${GRAPHIFY_BIN:-}"
+# Empty = leave GRAPHIFY_VIZ_NODE_LIMIT unset (graphify default, usually 5000)
+VIZ_NODE_LIMIT="${GRAPHIFY_VIZ_NODE_LIMIT:-}"
 
 usage() {
   cat >&2 <<'EOF'
@@ -58,12 +73,14 @@ Usage:
 
 Runs (live, streamed):
   graphify extract <hermes-profile> --backend openai …
+  graphify cluster-only <hermes-profile> --backend openai …   # GRAPH_REPORT.md
 
 Environment (openai-compatible; default = local NIM):
   OPENAI_BASE_URL   default http://localhost:8000/v1
   OPENAI_API_KEY    default not-needed (local NIM; set for remote)
-  OPENAI_MODEL      default meta/llama-3.3-70b-instruct
+  OPENAI_MODEL      default google/gemma-4-31B-it
   HERMES_PROFILE    override profile path (default: <repo>/hermes-profile)
+  GRAPHIFY_VIZ_NODE_LIMIT  HTML viz node cap (or pass --viz-node-limit)
 
   Ensure the NIM is reachable first, e.g.:
     brev port-forward nim-llama33 -p 8000:8000
@@ -72,14 +89,24 @@ Environment (openai-compatible; default = local NIM):
 Options:
   --profile PATH             hermes-profile directory (default: ../hermes-profile)
   --backend NAME             default: openai
-  --model NAME               default: $OPENAI_MODEL or meta/llama-3.3-70b-instruct
+  --model NAME               default: $OPENAI_MODEL or google/gemma-4-31B-it
   --token-budget N           default: 25000
   --max-concurrency N        default: 2
   --api-timeout S            default: 1800
+  --resolution N             Leiden cluster resolution (default: 1.0)
+                             higher = more/smaller communities; lower = fewer/larger
+  --viz-node-limit N         Set GRAPHIFY_VIZ_NODE_LIMIT (HTML viz; default unset)
   --graphify PATH            graphify binary (else .venv, conda hermes, PATH)
+  --scope curated|full       Which .graphifyignore.* to install before extract
+                             curated (default): SKILL.md / skill-cards / camp docs
+                             full: whole codebase (scripts, references, code)
+  --curated                  Shortcut for --scope curated
+  --full                     Shortcut for --scope full
   --wipe                     Delete graphify-out/ (+ optional baseline) before extract
   --pack-baseline            After SUCCESS: refresh graphify-baseline.tar.gz and
                              agent-knowledge-graph.html from graphify-out/
+  --cluster-only             Skip extract; only run cluster-only (needs graph.json)
+  --skip-cluster             Skip cluster-only after extract
   --force                    Pass --force to graphify extract
   --dry-run                  Print commands only
   --skip-health-check        Do not probe OPENAI_BASE_URL before extract
@@ -153,6 +180,32 @@ wipe_graph() {
   rm -f "$PROFILE/agent-knowledge-graph.html"
 }
 
+# Install hermes-profile/.graphifyignore.<scope> as the active .graphifyignore
+# that graphify extract reads. Skipped for --cluster-only (no rescan).
+apply_graphifyignore_scope() {
+  local src="$PROFILE/.graphifyignore.${SCOPE}"
+  local dest="$PROFILE/.graphifyignore"
+
+  case "$SCOPE" in
+    curated|full) ;;
+    *)
+      echo "ERROR: --scope must be curated or full (got: $SCOPE)" >&2
+      exit 1
+      ;;
+  esac
+
+  if [[ ! -f "$src" ]]; then
+    echo "ERROR: missing scope ignore file: $src" >&2
+    exit 1
+  fi
+
+  echo "[SCOPE] $SCOPE → $(basename "$dest") (from $(basename "$src"))" >&2
+  if [[ "$DRY_RUN" == "1" ]]; then
+    return 0
+  fi
+  cp "$src" "$dest"
+}
+
 pack_baseline() {
   [[ "$PACK_BASELINE" == "1" ]] || return 0
   if [[ ! -f "$PROFILE/graphify-out/graph.json" ]]; then
@@ -183,6 +236,7 @@ run_extract() {
   [[ -n "$TOKEN_BUDGET" ]] && cmd+=(--token-budget "$TOKEN_BUDGET")
   [[ -n "$MAX_CONCURRENCY" ]] && cmd+=(--max-concurrency "$MAX_CONCURRENCY")
   [[ -n "$API_TIMEOUT" ]] && cmd+=(--api-timeout "$API_TIMEOUT")
+  [[ -n "$RESOLUTION" ]] && cmd+=(--resolution "$RESOLUTION")
   [[ "$FORCE" == "1" ]] && cmd+=(--force)
 
   echo "[CMD] ${cmd[*]}" >&2
@@ -197,8 +251,10 @@ run_extract() {
     echo "==== $(date -u +%Y-%m-%dT%H:%M:%SZ) ===="
     echo "CMD: ${cmd[*]}"
     echo "PROFILE=$PROFILE"
+    echo "SCOPE=$SCOPE"
     echo "OPENAI_BASE_URL=${OPENAI_BASE_URL:-}"
     echo "OPENAI_MODEL=${OPENAI_MODEL:-$MODEL}"
+    echo "RESOLUTION=$RESOLUTION"
     echo
   } >"$LOG_FILE"
 
@@ -209,6 +265,45 @@ run_extract() {
   return "$rc"
 }
 
+# Recluster + regenerate GRAPH_REPORT.md (extract stops at graph.json).
+run_cluster_only() {
+  local graphify="$1"
+  local -a cmd
+
+  [[ "$SKIP_CLUSTER" == "1" ]] && return 0
+
+  cmd=("$graphify" cluster-only "$PROFILE")
+  [[ -n "$BACKEND" ]] && cmd+=(--backend "$BACKEND")
+  [[ -n "$MODEL" ]] && cmd+=(--model "$MODEL")
+  [[ -n "$RESOLUTION" ]] && cmd+=(--resolution "$RESOLUTION")
+
+  echo "[CLUSTER] ${cmd[*]}" >&2
+  if [[ "$DRY_RUN" == "1" ]]; then
+    return 0
+  fi
+
+  {
+    echo
+    echo "==== cluster-only $(date -u +%Y-%m-%dT%H:%M:%SZ) ===="
+    echo "CMD: ${cmd[*]}"
+    echo
+  } >>"$LOG_FILE"
+
+  set +e
+  PYTHONUNBUFFERED=1 "${cmd[@]}" 2>&1 | tee -a "$LOG_FILE"
+  local rc=${PIPESTATUS[0]}
+  set -e
+  if [[ "$rc" -ne 0 ]]; then
+    if [[ "$CLUSTER_ONLY" == "1" ]]; then
+      echo "[FAIL] cluster-only failed (rc=$rc) — see $LOG_FILE" >&2
+      return "$rc"
+    fi
+    echo "[WARN] cluster-only failed (rc=$rc); graph.json from extract is kept — see $LOG_FILE" >&2
+    return 0
+  fi
+  return 0
+}
+
 # --- args ---
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -217,6 +312,15 @@ while [[ $# -gt 0 ]]; do
     --wipe) WIPE=1; shift ;;
     --pack-baseline) PACK_BASELINE=1; shift ;;
     --skip-health-check) SKIP_HEALTH_CHECK=1; shift ;;
+    --skip-cluster) SKIP_CLUSTER=1; shift ;;
+    --cluster-only) CLUSTER_ONLY=1; shift ;;
+    --curated) SCOPE="curated"; shift ;;
+    --full) SCOPE="full"; shift ;;
+    --scope)
+      [[ $# -ge 2 ]] || usage
+      SCOPE="$2"; shift 2
+      ;;
+    --scope=*) SCOPE="${1#--scope=}"; shift ;;
     --profile)
       [[ $# -ge 2 ]] || usage
       PROFILE="$2"; shift 2
@@ -247,6 +351,16 @@ while [[ $# -gt 0 ]]; do
       API_TIMEOUT="$2"; shift 2
       ;;
     --api-timeout=*) API_TIMEOUT="${1#--api-timeout=}"; shift ;;
+    --resolution)
+      [[ $# -ge 2 ]] || usage
+      RESOLUTION="$2"; shift 2
+      ;;
+    --resolution=*) RESOLUTION="${1#--resolution=}"; shift ;;
+    --viz-node-limit)
+      [[ $# -ge 2 ]] || usage
+      VIZ_NODE_LIMIT="$2"; shift 2
+      ;;
+    --viz-node-limit=*) VIZ_NODE_LIMIT="${1#--viz-node-limit=}"; shift ;;
     --graphify)
       [[ $# -ge 2 ]] || usage
       GRAPHIFY_BIN="$2"; shift 2
@@ -270,6 +384,22 @@ if [[ ! -d "$PROFILE/skills" || ! -f "$PROFILE/AGENTS.md" ]]; then
   exit 1
 fi
 
+if [[ "$CLUSTER_ONLY" == "1" && "$SKIP_CLUSTER" == "1" ]]; then
+  echo "ERROR: --cluster-only and --skip-cluster conflict" >&2
+  exit 1
+fi
+if [[ "$CLUSTER_ONLY" == "1" && "$WIPE" == "1" ]]; then
+  echo "ERROR: --cluster-only and --wipe conflict (wipe removes graph.json)" >&2
+  exit 1
+fi
+case "$SCOPE" in
+  curated|full) ;;
+  *)
+    echo "ERROR: --scope must be curated or full (got: $SCOPE)" >&2
+    exit 1
+    ;;
+esac
+
 if [[ "$BACKEND" == "openai" ]]; then
   export OPENAI_BASE_URL="${OPENAI_BASE_URL:-$DEFAULT_OPENAI_BASE_URL}"
   export OPENAI_MODEL="${OPENAI_MODEL:-$MODEL}"
@@ -283,6 +413,9 @@ if [[ "$BACKEND" == "openai" ]]; then
   fi
 fi
 [[ "$FORCE" == "1" ]] && export GRAPHIFY_FORCE=1
+if [[ -n "$VIZ_NODE_LIMIT" ]]; then
+  export GRAPHIFY_VIZ_NODE_LIMIT="$VIZ_NODE_LIMIT"
+fi
 
 GRAPHIFY="$(resolve_graphify)"
 
@@ -294,9 +427,14 @@ echo "model:         $MODEL" >&2
 echo "token-budget:  $TOKEN_BUDGET" >&2
 echo "concurrency:   $MAX_CONCURRENCY" >&2
 echo "api-timeout:   $API_TIMEOUT" >&2
+echo "resolution:    $RESOLUTION" >&2
+echo "scope:         $SCOPE" >&2
+echo "viz-node-limit:${GRAPHIFY_VIZ_NODE_LIMIT:-unset (graphify default)}" >&2
 [[ "$BACKEND" == "openai" ]] && echo "OPENAI_BASE_URL=$OPENAI_BASE_URL" >&2
 [[ "$WIPE" == "1" ]] && echo "wipe=1 (from-scratch)" >&2
 [[ "$PACK_BASELINE" == "1" ]] && echo "pack-baseline=1" >&2
+[[ "$CLUSTER_ONLY" == "1" ]] && echo "cluster-only=1 (skip extract)" >&2
+[[ "$SKIP_CLUSTER" == "1" ]] && echo "skip-cluster=1" >&2
 [[ "$DRY_RUN" == "1" ]] && echo "DRY RUN — no writes / no extract" >&2
 
 echo >&2
@@ -304,6 +442,39 @@ echo "================================================================" >&2
 echo "======== hermes-profile ========" >&2
 echo "================================================================" >&2
 
+if [[ "$CLUSTER_ONLY" == "1" ]]; then
+  if [[ "$DRY_RUN" != "1" && ! -f "$PROFILE/graphify-out/graph.json" ]]; then
+    echo "ERROR: --cluster-only requires $PROFILE/graphify-out/graph.json" >&2
+    exit 1
+  fi
+  # Fresh log header for cluster-only runs
+  if [[ "$DRY_RUN" != "1" ]]; then
+    mkdir -p "$LOG_DIR"
+    {
+      echo "==== $(date -u +%Y-%m-%dT%H:%M:%SZ) cluster-only ===="
+      echo "PROFILE=$PROFILE"
+      echo "RESOLUTION=$RESOLUTION"
+      echo
+    } >"$LOG_FILE"
+  fi
+  if ! run_cluster_only "$GRAPHIFY"; then
+    echo "[FAIL] hermes-profile cluster-only failed — see $LOG_FILE" >&2
+    exit 1
+  fi
+  if [[ "$DRY_RUN" == "1" ]]; then
+    echo "[DONE] hermes-profile (DRY_RUN)" >&2
+    exit 0
+  fi
+  pack_baseline || exit 1
+  echo "[DONE] hermes-profile (SUCCESS, cluster-only)" >&2
+  echo "Log: $LOG_FILE" >&2
+  echo "Graph: $PROFILE/graphify-out/graph.json" >&2
+  [[ -f "$PROFILE/graphify-out/GRAPH_REPORT.md" ]] && echo "Report: $PROFILE/graphify-out/GRAPH_REPORT.md" >&2
+  [[ "$PACK_BASELINE" == "1" ]] && echo "Baseline: $PROFILE/graphify-baseline.tar.gz" >&2
+  exit 0
+fi
+
+apply_graphifyignore_scope
 wipe_graph
 
 if ! run_extract "$GRAPHIFY"; then
@@ -312,6 +483,7 @@ if ! run_extract "$GRAPHIFY"; then
 fi
 
 if [[ "$DRY_RUN" == "1" ]]; then
+  run_cluster_only "$GRAPHIFY"
   echo "[DONE] hermes-profile (DRY_RUN)" >&2
   exit 0
 fi
@@ -321,11 +493,16 @@ if [[ ! -f "$PROFILE/graphify-out/graph.json" ]]; then
   exit 1
 fi
 
+run_cluster_only "$GRAPHIFY"
+
 pack_baseline || exit 1
 
 echo "[DONE] hermes-profile (SUCCESS)" >&2
 echo "Log: $LOG_FILE" >&2
 echo "Graph: $PROFILE/graphify-out/graph.json" >&2
+if [[ -f "$PROFILE/graphify-out/GRAPH_REPORT.md" ]]; then
+  echo "Report: $PROFILE/graphify-out/GRAPH_REPORT.md" >&2
+fi
 if [[ "$PACK_BASELINE" == "1" ]]; then
   echo "Baseline: $PROFILE/graphify-baseline.tar.gz" >&2
 fi
