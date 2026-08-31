@@ -8,7 +8,7 @@ Install on your Thor following [hermes-agent.md — Step 3A](../hermes-agent.md#
 
 ```text
 hermes-profile/
-├── distribution.yaml    # manifest (name: sage, version 1.1.0)
+├── distribution.yaml    # manifest (name: sage, version 1.2.0)
 ├── SOUL.md              # agent personality + Graphify-first discovery rules
 ├── AGENTS.md            # always-on: query graphify-out/ before grepping skills
 ├── config.yaml          # Ollama default + NRP provider pre-wired (minimax-m2)
