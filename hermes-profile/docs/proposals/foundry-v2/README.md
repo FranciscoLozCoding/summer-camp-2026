@@ -58,11 +58,13 @@ repo. All cross-references in the merged pages resolve.
 
 ## Known issues carried into 1.3.0
 
-- **`SKILL.md` is 118,479 B against a 100 KB limit** (18.5% over). It was already 15%
-  over at 1.1.0 and v1 grew it; indexing these ten added 2,594 B. The in-place
-  `skill_manage action=patch` path aborts with a size error, so this file must be
-  split. Tracked as theme T11, deliberately not fixed in this release because
-  splitting it needs its own A/B.
+- **`SKILL.md` is 117,644 chars against a 100,000-char limit** (17.6% over). It was
+  already 14.4% over at 1.1.0, v1 grew it by 631 chars, and indexing these ten added
+  2,572 more. The limit is `MAX_SKILL_CONTENT_CHARS`, documented in
+  `skills/software-development/hermes-agent-skill-authoring/SKILL.md`; it is a
+  **character** cap, not bytes. The in-place `skill_manage action=patch` path aborts
+  with a size error, so this file must be split. Tracked as theme T11, deliberately
+  not fixed in this release because splitting it needs its own A/B.
 - **Six of ten pages are hardware-verified**; four rest on transcript evidence alone.
   The canary corrected one of the six it tested, so treat the four as less certain.
   See `notes/03-canary.md` in the logs repo.
