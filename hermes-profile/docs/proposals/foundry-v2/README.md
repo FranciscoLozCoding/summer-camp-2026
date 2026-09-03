@@ -63,14 +63,44 @@ agent that loads it still cannot fix the problem: it sets `CUDA_VISIBLE_DEVICES=
 and hangs anyway. `retrieval_hit=True, actionable=False`. Coverage is not the same
 as being able to act.
 
+## Live canary — `node-H039.sage`, 2026-09-02
+
+Six of the ten are now verified on real hardware. Highlights:
+
+- **HV2-0003 proved causally.** Two pods identical but for one line, same image, same
+  `nodeSelector`: without `runtimeClassName` → `CUDA: False`, 0 `/dev/nvidia*`; with
+  `runtimeClassName: nvidia` → `CUDA: True`, 5 devices. `pluginctl deploy --dry-run`
+  emits that field in **none** of plain / `--selector resource.gpu=true` /
+  `--privileged`. The `nvidia` RuntimeClass exists and the node carries
+  `resource.gpu=true` — the node looks GPU-ready by every label a student would
+  check, while every pluginctl GPU plugin silently runs on CPU.
+- **HV2-0002 read straight from node config.** `/etc/sudoers.d/admin-users` lists the
+  `%develop` allowlist character-for-character as the July transcript showed, on a
+  different node. `k3s` is absent.
+- **HV2-0004 was corrected by the canary.** The draft implied `--gpus all` fails. It
+  does not: it exits 0 and injects **zero** GPU devices — worse than erroring. Only
+  hardware caught this; assume similar risk in the four still untested.
+- HV2-0006 (sm_110, cap `(11,0)`), HV2-0007 and HV2-0008 (pywaggle RGB conversion and
+  the misleading zero-arg `Camera()` `TypeError`) all confirmed.
+
+The three candidates flagged as possibly stale since July all reproduce six weeks
+later, on a different node.
+
+**Still untested:** HV2-0005 (unsafe on shared hardware — its claim is that the
+process becomes unkillable by SIGKILL; needs a node with a reboot window), HV2-0001
+(a Hermes harness property, not a node property), HV2-0009 and HV2-0010 (need a
+non-root student context).
+
+The canary ran as **root**; students were non-root `%develop` members. Config-level
+findings transfer directly; student-permission experience was read from config.
+
+Full log: logs repo, `hermes/foundry-v2/notes/03-canary.md`.
+
 ## Before merging any of these
 
-1. **Run an instructor canary on a current node.** All grading here is textual —
-   retrievability and actionability, not hardware outcomes. Nine of these contradict
-   shipped guidance, and a stale correction is worse than none.
-2. **Re-check the three that depend on per-node provisioning** — HV2-0002 (sudoers
-   allowlist), HV2-0003 (device-plugin presence), HV2-0004 (Podman vs Docker). These
-   may vary by node or have changed since July.
+1. **Run the HV2-0005 reproduction on a node you can reboot**, and exercise HV2-0001
+   through Hermes itself rather than an SSH shell.
+2. Treat the four untested pages with the caution HV2-0004 earned.
 3. **Do not add prose to `sage-waggle/SKILL.md`.** It is already 115,244 B against a
    100 KB limit, and the 1.2.0 release grew it further; in-place patches now abort
    with a size error. New material belongs in `references/`, and splitting the skill

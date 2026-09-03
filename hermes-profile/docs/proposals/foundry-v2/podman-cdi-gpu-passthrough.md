@@ -14,10 +14,19 @@ docker run --rm --device nvidia.com/gpu=all <image>     # WORKS
 
 Both alternatives fail:
 
-| Flag | Result |
+| Flag | Result (verified on a camp Thor, 2026-09) |
 | --- | --- |
-| `--runtime=nvidia` | `default OCI runtime 'nvidia' not found` |
-| `--gpus all` | not implemented by Podman / driver-hook error |
+| `--runtime=nvidia` | fails loudly: `default OCI runtime "nvidia" not found: invalid argument` |
+| `--gpus all` | **exits 0 and injects nothing** — no `/dev/nvidia*` in the container |
+| `--device nvidia.com/gpu=all` | works: 4 `/dev/nvidia*` nodes injected |
+
+**`--gpus all` is the dangerous one.** It does not error. The container starts, your
+code runs, CUDA is simply absent, and the job looks healthy while running on CPU.
+Verify by counting devices, not by checking the exit status:
+
+```bash
+docker run --rm --device nvidia.com/gpu=all <image> ls /dev/ | grep -c nvidia   # want > 0
+```
 
 CDI specs are pre-installed at `/etc/cdi/nvidia.yaml` and `/var/run/cdi/nvidia.yaml`;
 no admin action is needed.
