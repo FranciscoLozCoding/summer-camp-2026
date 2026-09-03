@@ -1094,16 +1094,36 @@ git push
 **Always sanitize before committing.** Graphify records the absolute path of the
 directory it extracted, so a freshly packed tarball carries the packager's home
 directory in `graphify-out/.graphify_root`, `GRAPH_REPORT.md` (including dated
-backup copies) and the `<title>` of `graph.html`. `.graphify_root` is the one
-that actually matters: it is functional, and shipping it unedited points a
-student's unpacked graph at a directory on someone else's laptop.
-`scripts/sanitize_graph_tarball.sh` rewrites all of them to
-`$HOME/.hermes/profiles/sage` and repacks. Verify with:
+backup copies) and the `<title>` of `graph.html`.
+`scripts/sanitize_graph_tarball.sh` rewrites the cosmetic ones to
+`$HOME/.hermes/profiles/sage`, **deletes** `.graphify_root`, and repacks.
+Verify with:
 
 ```bash
-tar -xzOf graphify-baseline.tar.gz graphify-out/.graphify_root   # -> $HOME/.hermes/profiles/sage
+tar -tzf graphify-baseline.tar.gz | grep graphify_root   # -> no output
 tar -xzf graphify-baseline.tar.gz -C /tmp/check && grep -rl '/Users/' /tmp/check   # -> no matches
 ```
+
+**`.graphify_root` is deleted, not rewritten, and the install step must write
+it back.** It is a functional file, not a cosmetic one, and there is no portable
+value to ship: graphify reads it with `Path(text)` and does no shell expansion,
+so a literal `$HOME/...` resolves to a bogus nested path, while a real absolute
+path is the packager's machine. So the profile install writes it (see
+`hermes-profile/README.md` and `AGENTS.md`):
+
+```bash
+printf '%s\n' "$HOME/.hermes/profiles/sage" > graphify-out/.graphify_root
+```
+
+Omitting that step is not safe. `graphify update` resolves the marker at
+`Path(GRAPHIFY_OUT)/".graphify_root"` where `GRAPHIFY_OUT` defaults to the
+*relative* name `graphify-out`, so it is looked up against the **CWD**. With no
+marker — or with the CWD anywhere but the profile — it falls back to `Path(".")`
+and walks that tree. Measured on a Thor node, 2026-09-03: run from `$HOME` with
+no marker it scanned **8,746** files and created a stray `~/graphify-out`; with
+a correct absolute marker and the CWD at the profile it scanned the right
+**244**. Two rules follow: write the marker at install time, and always invoke
+graphify from the profile directory.
 
 Prefer the incremental path above over `--wipe`. `--wipe` deletes `graphify-out/`
 *including its semantic cache*, turning a cheap refresh into a full paid

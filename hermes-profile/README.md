@@ -62,6 +62,10 @@ fi
 if [ ! -f graphify-out/graph.json ] && [ -f graphify-baseline.tar.gz ]; then
   tar -xzf graphify-baseline.tar.gz
 fi
+# Required: pin the scan root to an ABSOLUTE path. The tarball cannot carry one
+# (it would be the packager's path), and without this marker `graphify update`
+# falls back to the CWD and walks your entire home directory.
+printf '%s\n' "$HOME/.hermes/profiles/sage" > graphify-out/.graphify_root
 test -f graphify-out/graph.json && echo "graph ok"
 # If still missing: in Hermes run  /graphify ~/.hermes/profiles/sage
 # After skill/doc changes:         /graphify ~/.hermes/profiles/sage --update

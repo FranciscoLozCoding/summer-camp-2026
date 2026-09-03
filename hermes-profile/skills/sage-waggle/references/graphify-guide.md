@@ -51,6 +51,8 @@ export PATH="$PWD/.venv-graphify/bin:$PATH"
 if [ ! -f graphify-out/graph.json ] && [ -f graphify-baseline.tar.gz ]; then
   tar -xzf graphify-baseline.tar.gz
 fi
+# Required: absolute scan root (the tarball ships without one — see below).
+printf '%s\n' "$HOME/.hermes/profiles/sage" > graphify-out/.graphify_root
 test -f graphify-out/graph.json && echo "graph ok"
 ```
 
