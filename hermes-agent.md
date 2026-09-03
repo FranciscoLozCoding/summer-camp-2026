@@ -1048,14 +1048,53 @@ graphify extract ~/.hermes/profiles/sage
 ```
 >NOTE: add [enviroment variables](https://github.com/Graphify-Labs/graphify#environment-variables) to determine which llm endpoint to use. Also the extract command does the incremental updates automatically by analyzing the graphify files. If no graphify files are detected then it will start from scratch.
 
-**Instructors only** — after rebuilding the graph on a staging profile (or copying an updated `graphify-out/` into the distribution tree), refresh the shipped camp baseline in the git repo:
+**Instructors only** — the shipped baseline is **two graphs**, not one:
+
+| Graph | Ignore file | Ships as | Purpose |
+|---|---|---|---|
+| **curated** | `.graphifyignore.curated` | `graphify-baseline-viz.tar.gz`, `agent-knowledge-graph.html` | Human-readable visualization — deliberately small so the HTML stays legible |
+| **full** | `.graphifyignore.full` | `graphify-baseline.tar.gz` | What the agent queries (GraphRAG); far larger, never shipped as the main viz |
+
+`graphify extract` always writes to `<profile>/graphify-out/` and has no
+output-directory flag, so building both means swapping directories. Stash the
+idle graph **outside** the profile — a sibling such as `graphify-out-full/`
+matches no `.graphifyignore` rule and graphify will scan the stashed graph's own
+cache as source material.
 
 ```bash
-# From the distribution checkout (summer-camp-2026/hermes-profile), after copying
-# a fresh graphify-out/ from ~/.hermes/profiles/sage (or rebuilding there for packaging):
+# From the distribution checkout (summer-camp-2026/hermes-profile):
+STASH="$(mktemp -d)"                       # outside the profile, on purpose
+mv graphify-out "$STASH/full"
+
+# curated pass -> viz artifacts
+mv graphify-out-viz graphify-out
+../scripts/update_hermes_profile_graphify.sh --scope curated
+tar -czf graphify-baseline-viz.tar.gz graphify-out
 cp graphify-out/graph.html agent-knowledge-graph.html
+mv graphify-out graphify-out-viz
+
+# full pass -> query graph
+mv "$STASH/full" graphify-out
+../scripts/update_hermes_profile_graphify.sh --scope full
 tar -czf graphify-baseline.tar.gz graphify-out
-git add agent-knowledge-graph.html graphify-baseline.tar.gz
+rmdir "$STASH"
+
+git add agent-knowledge-graph.html graphify-baseline.tar.gz graphify-baseline-viz.tar.gz
 git commit -m "Update knowledge graph baseline"
 git push
 ```
+
+Prefer the incremental path above over `--wipe`. `--wipe` deletes `graphify-out/`
+*including its semantic cache*, turning a cheap refresh into a full paid
+re-extract. The cache stays valid as long as the prompt fingerprint directory
+(`graphify-out/cache/semantic/p<fingerprint>/`) is unchanged.
+
+**Caveat on curated coverage.** `.graphifyignore.curated` admits `docs/` and
+top-level skill entry points but not `skills/*/references/`. Reference pages
+therefore appear only in the full query graph, and `agent-knowledge-graph.html`
+will not visibly reflect changes confined to them — profile 1.4.0's skill split
+moved bulk into 11 routed `pitfalls-*.md` reference pages, so the published
+visualization gained only the new `docs/` entries even though the agent's
+queryable knowledge grew substantially. This is the intended trade-off: widening
+the curated scope to cover `references/` would make the HTML unreadable. If a
+change needs to show up in the visualization, it has to land in `docs/`.
