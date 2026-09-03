@@ -78,6 +78,18 @@ export PATH="$PWD/.venv-graphify/bin:$PATH"
 .venv-graphify/bin/graphify update .
 ```
 
+**Always `cd` to the profile first** — that `cd` is load-bearing, not tidiness.
+`graphify update` looks for `graphify-out/.graphify_root` relative to the
+**current directory**, so from `$HOME` it finds nothing, falls back to scanning
+`.`, and walks your whole home tree (measured on a Thor node: 8,746 files, plus
+a stray `~/graphify-out`). With the marker in place and the CWD at the profile
+it scans the right ~244 files.
+
+The shipped tarball deliberately contains no `.graphify_root`: graphify reads it
+with `Path(text)` and does no shell expansion, so a literal `$HOME/...` becomes
+a bogus path and a real absolute path would be the packager's machine. Write it
+yourself after unpacking (step 2 above).
+
 ## Local Ollama — what we learned to make extract work
 
 These matter when building/updating **without** (or beyond) the baseline tarball on Thor + Ollama:

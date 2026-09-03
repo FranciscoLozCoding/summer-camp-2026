@@ -50,6 +50,11 @@ git clone https://github.com/waggle-sensor/summer-camp-2026.git
 cd summer-camp-2026
 hermes profile install ./hermes-profile --name sage --alias
 hermes profile use sage
+
+# --alias installs the wrapper at ~/.local/bin/sage, which is not on PATH on
+# every host (e.g. root on the Thor node images). If `sage` is not found:
+#   echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && . ~/.bashrc
+# `hermes -p sage ...` always works without the wrapper.
 cp ~/.hermes/profiles/sage/.env.EXAMPLE ~/.hermes/profiles/sage/.env
 
 # Required — Graphify (venv + optional baseline tarball; then skill graphify)

@@ -143,7 +143,19 @@ hermes profile install ./hermes-profile --name sage --alias
 3. Marks each `env_requires` key as `✓ set` or `needs setting`
 4. Prompts for confirmation (pass `-y` to skip)
 5. Writes `.env.EXAMPLE` — you copy to `.env`
-6. With `--alias`, creates a `sage` wrapper command
+6. With `--alias`, creates a `sage` wrapper command at `~/.local/bin/sage`
+
+`~/.local/bin` is **not** on `PATH` on every host — notably for `root` on the
+Thor/Debian node images, whose minimal `/root/.profile` omits the usual
+`~/.local/bin` block. If `sage` is "command not found" right after install, the
+wrapper exists and the directory is simply unreachable:
+
+```bash
+ls -l ~/.local/bin/sage                      # wrapper is there
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && . ~/.bashrc
+```
+
+`hermes -p sage` works regardless — the wrapper is only a shorthand for it.
 
 ### Post-install
 
@@ -388,6 +400,25 @@ The script captures the full scrollback (with ANSI colors) to `~/AI-projects/tmu
 ```bash
 less -R ~/AI-projects/tmux-logs/transcript_*.ansi
 ```
+
+**Hermes keeps its own history in SQLite, not in files.** The profile's
+`sessions/` directory stays empty; conversations live in
+`~/.hermes/profiles/sage/state.db` (tables `sessions` and `messages`). Don't
+conclude a run was lost because `sessions/` is empty. To read one back:
+
+```bash
+hermes chat -p sage -r <session_id>          # session_id is printed on exit
+cd ~/.hermes/profiles/sage && python3 -c "
+import sqlite3
+c = sqlite3.connect('file:state.db?mode=ro', uri=True)
+for sid, n in c.execute('select session_id, count(*) from messages group by session_id'):
+    print(sid, n)"
+```
+
+Scripted use: `hermes chat -p sage -Q -q '<question>'` prints only the answer on
+stdout and `session_id: <id>` on stderr. Local Ollama on a Thor takes minutes
+per answer with nothing on stdout until it finishes — a quiet run is normal, so
+give it a generous timeout rather than assuming it failed.
 
 ---
 
