@@ -1079,9 +1079,30 @@ mv "$STASH/full" graphify-out
 tar -czf graphify-baseline.tar.gz graphify-out
 rmdir "$STASH"
 
+# Strip the build machine's absolute paths before committing (see below)
+../scripts/sanitize_graph_tarball.sh graphify-baseline.tar.gz
+../scripts/sanitize_graph_tarball.sh graphify-baseline-viz.tar.gz
+INSTALL_ROOT='$HOME/.hermes/profiles/sage' perl -pi -e \
+  's{(?:/Users|/home)/[^/\s"]+/[^\s"]*?hermes-profile}{$ENV{INSTALL_ROOT}}g' \
+  agent-knowledge-graph.html
+
 git add agent-knowledge-graph.html graphify-baseline.tar.gz graphify-baseline-viz.tar.gz
 git commit -m "Update knowledge graph baseline"
 git push
+```
+
+**Always sanitize before committing.** Graphify records the absolute path of the
+directory it extracted, so a freshly packed tarball carries the packager's home
+directory in `graphify-out/.graphify_root`, `GRAPH_REPORT.md` (including dated
+backup copies) and the `<title>` of `graph.html`. `.graphify_root` is the one
+that actually matters: it is functional, and shipping it unedited points a
+student's unpacked graph at a directory on someone else's laptop.
+`scripts/sanitize_graph_tarball.sh` rewrites all of them to
+`$HOME/.hermes/profiles/sage` and repacks. Verify with:
+
+```bash
+tar -xzOf graphify-baseline.tar.gz graphify-out/.graphify_root   # -> $HOME/.hermes/profiles/sage
+tar -xzf graphify-baseline.tar.gz -C /tmp/check && grep -rl '/Users/' /tmp/check   # -> no matches
 ```
 
 Prefer the incremental path above over `--wipe`. `--wipe` deletes `graphify-out/`
